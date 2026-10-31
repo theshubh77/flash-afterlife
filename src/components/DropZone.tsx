@@ -2,11 +2,17 @@
 
 import React, { useState, useRef } from "react";
 import { extractSwfBytecode, SwfMetadata } from "@/lib/swf/parser";
-import { UploadCloud, FileCode2, CheckCircle2, AlertCircle, Loader2, Sparkles, Terminal } from "lucide-react";
+import { UploadCloud, FileCode2, CheckCircle2, AlertCircle, Sparkles, Terminal } from "lucide-react";
 import { playBlip, playReanimationChime } from "@/lib/audio/retroSynth";
+import { LottieAnimation } from "./LottieAnimation";
 
 interface DropZoneProps {
-  onBytecodeExtracted: (actionScript: string, metadata: SwfMetadata, filename: string) => void;
+  onBytecodeExtracted: (
+    actionScript: string,
+    metadata: SwfMetadata,
+    filename: string,
+    rawBuffer: ArrayBuffer
+  ) => void;
   isProcessing: boolean;
 }
 
@@ -18,18 +24,12 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith(".swf")) {
-      setError("Please drop a valid Macromedia / Adobe Flash .SWF file.");
-      return;
-    }
-
+  const processBuffer = async (arrayBuffer: ArrayBuffer, filename: string) => {
     try {
       setError(null);
       setExtracting(true);
-      setCurrentFile(file.name);
+      setCurrentFile(filename);
 
-      const arrayBuffer = await file.arrayBuffer();
       const result = await extractSwfBytecode(arrayBuffer);
 
       if (!result.success || !result.metadata) {
@@ -40,15 +40,43 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
 
       setExtractedMetadata(result.metadata);
       playReanimationChime();
+
       onBytecodeExtracted(
         result.rawActionScript || result.metadata.reconstructedActionScript,
         result.metadata,
-        file.name
+        filename,
+        arrayBuffer
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Extraction error: ${msg}`);
     } finally {
+      setExtracting(false);
+    }
+  };
+
+  const processFile = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith(".swf")) {
+      setError("Please drop a valid Macromedia / Adobe Flash .SWF file.");
+      return;
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    await processBuffer(arrayBuffer, file.name);
+  };
+
+  const loadSampleSwf = async (samplePath: string, name: string) => {
+    try {
+      playBlip();
+      setError(null);
+      setExtracting(true);
+      setCurrentFile(name);
+
+      const res = await fetch(samplePath);
+      const arrayBuffer = await res.arrayBuffer();
+      await processBuffer(arrayBuffer, name);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Sample load error: ${msg}`);
       setExtracting(false);
     }
   };
@@ -64,21 +92,19 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
   return (
     <div className="w-full rounded-2xl border-2 border-emerald-500/40 bg-[#061e22]/90 p-6 shadow-2xl backdrop-blur-md">
       <div className="flex items-center justify-between border-b border-emerald-900/40 pb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <UploadCloud className="h-5 w-5 text-emerald-400" />
           <h3 className="font-bold text-white text-base uppercase tracking-wider">
-            In-Browser SWF Bytecode Extractor
+            SWF-to-Canvas Reanimation Altar
           </h3>
         </div>
         <span className="rounded bg-emerald-950 px-2.5 py-0.5 text-[11px] font-mono font-bold text-emerald-300 border border-emerald-800">
-          Client-Side DecompressionStream
+          Native SWF Decompiler + Gemma-4 AI Canvas
         </span>
       </div>
 
       <p className="mt-2 text-xs text-slate-300">
-        Drop any 2000s <code className="text-emerald-400 font-mono">.swf</code> file. The browser
-        streams the zlib body, extracts Tag 12 (<span className="text-amber-300">DoAction</span>) and Tag 59 (<span className="text-amber-300">DoInitAction</span>),
-        and feeds the raw ActionScript into the Mastra Gemma agent.
+        Drop any vintage <code className="text-emerald-400 font-mono">.swf</code> file. The client decompressor streams the CWS/FWS bytes, scrapes Tag 12 (<span className="text-amber-300">DoAction</span>) & Tag 59 (<span className="text-amber-300">DoInitAction</span>), and triggers Gemma-4 via Mastra to synthesize a 60 FPS HTML5 Canvas game!
       </p>
 
       {/* Drag & Drop Target Area */}
@@ -110,24 +136,62 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
 
         {extracting || isProcessing ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 text-emerald-400 animate-spin" />
-            <p className="text-sm font-bold text-emerald-300">
-              {extracting ? "Decompressing CWS zlib stream & scraping Tag 12/59..." : "Mastra Orchestration & Gemma Transpilation in progress..."}
+            <LottieAnimation type="portal" className="w-20 h-20" />
+            <p className="text-sm font-bold text-emerald-300 animate-pulse text-center">
+              {extracting ? "Decompressing CWS zlib stream & scraping ActionScript tags..." : "Gemma AI Transpilation & HTML5 Canvas Reanimation in progress..."}
             </p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-              <FileCode2 className="h-7 w-7" />
-            </div>
+            <LottieAnimation type="ghost" className="w-16 h-16" />
             <p className="text-sm font-bold text-slate-200">
               Drop your vintage <span className="text-emerald-400 font-mono">.swf</span> binary here, or click to browse
             </p>
             <p className="text-xs text-slate-400">
-              Supports FWS (uncompressed) & CWS (zlib-deflated) Flash versions 4 through 10
+              Direct In-Browser Bytecode Extraction • Reanimated on HTML5 Canvas
             </p>
           </div>
         )}
+      </div>
+
+      {/* Quick Test Sample SWFs Bar */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-emerald-950/70">
+        <span className="text-xs font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+          Or test immediately with vintage .SWF binaries:
+        </span>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              loadSampleSwf("/sample-swfs/vintage_copter_2004.swf", "copter_2004.swf");
+            }}
+            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+          >
+            🚁 copter_2004.swf
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              loadSampleSwf("/sample-swfs/arcade_tank_assault.swf", "tank_blaster.swf");
+            }}
+            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+          >
+            🚀 tank_blaster.swf
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              loadSampleSwf("/sample-swfs/bouncing_elastic_ball.swf", "elastic_ball.swf");
+            }}
+            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+          >
+            ⚪ elastic_ball.swf
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}
@@ -194,4 +258,3 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
     </div>
   );
 }
-

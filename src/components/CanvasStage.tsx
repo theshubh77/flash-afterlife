@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Play, RotateCcw, Monitor, Maximize2, ShieldAlert, Sparkles, Terminal } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { RotateCcw, Monitor, Maximize2, Terminal, Layers, Cpu, Play } from "lucide-react";
 import { playBlip, playReanimationChime } from "@/lib/audio/retroSynth";
+import { LottieAnimation } from "./LottieAnimation";
 
 interface CanvasStageProps {
   gameCode: string;
+  swfData?: ArrayBuffer | null;
   title: string;
   controls: string[];
   cemeteryKeeperMessage?: string;
@@ -15,83 +17,173 @@ interface CanvasStageProps {
 
 export function CanvasStage({
   gameCode,
+  swfData,
   title,
   controls,
   cemeteryKeeperMessage,
   isFallback,
   onOpenCodeSeance,
 }: CanvasStageProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const ruffleContainerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // Engine Mode: Default is ALWAYS the Reanimated HTML5 Canvas!
+  const [engineMode, setEngineMode] = useState<"gemma-canvas" | "ruffle-wasm">("gemma-canvas");
   const [enableCrt, setEnableCrt] = useState(true);
-  const [fps, setFps] = useState(60);
-  const [isRunning, setIsRunning] = useState(true);
+  const [isRuffleLoaded, setIsRuffleLoaded] = useState(false);
+  const [restartNonce, setRestartNonce] = useState(0);
 
-  // Mount & execute reanimated Canvas Game Loop
+  // Dynamically load open-source Ruffle WebAssembly Flash Player for optional comparison
   useEffect(() => {
-    if (!canvasRef.current || !gameCode) return;
+    if (typeof window === "undefined") return;
 
-    // Clean up previous game loop if any
-    if (cleanupRef.current) {
-      try {
-        cleanupRef.current();
-      } catch (e) {
-        console.warn("Cleanup warning:", e);
-      }
-      cleanupRef.current = null;
+    if ((window as unknown as { RufflePlayer?: unknown }).RufflePlayer) {
+      setIsRuffleLoaded(true);
+      return;
     }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@ruffle-rs/ruffle";
+    script.async = true;
+    script.onload = () => setIsRuffleLoaded(true);
+    script.onerror = () => {
+      console.warn("Ruffle WASM CDN unavailable. Primary Gemma HTML5 Canvas active.");
+      setEngineMode("gemma-canvas");
+    };
+    document.head.appendChild(script);
+  }, []);
 
-    try {
-      // Execute sanitized startReanimatedGame contract
-      const executor = new Function("canvas", "ctx", `${gameCode}\n return startReanimatedGame(canvas, ctx);`);
-      const cleanupFn = executor(canvas, ctx);
+  // Mount Ruffle Player ONLY when user explicitly toggles to "ruffle-wasm"
+  useEffect(() => {
+    if (engineMode !== "ruffle-wasm" || !ruffleContainerRef.current || !swfData) return;
 
-      if (typeof cleanupFn === "function") {
-        cleanupRef.current = cleanupFn;
+    const win = window as unknown as {
+      RufflePlayer?: {
+        newest: () => {
+          createPlayer: () => {
+            style: { width: string; height: string };
+            load: (config: { data: ArrayBuffer; autoplay: string; letterbox: string }) => Promise<void>;
+          };
+        };
+      };
+    };
+
+    if (win.RufflePlayer) {
+      try {
+        const ruffle = win.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+        player.style.width = "100%";
+        player.style.height = "100%";
+
+        ruffleContainerRef.current.innerHTML = "";
+        ruffleContainerRef.current.appendChild(player as unknown as Node);
+
+        player.load({
+          data: swfData,
+          autoplay: "on",
+          letterbox: "on",
+        });
+      } catch (err) {
+        console.error("Ruffle mount error:", err);
+        setEngineMode("gemma-canvas");
       }
-
-      setIsRunning(true);
-    } catch (err) {
-      console.error("Game execution error:", err);
     }
 
     return () => {
-      if (cleanupRef.current) {
-        try {
-          cleanupRef.current();
-        } catch (e) {
-          console.warn("Cleanup error on unmount:", e);
-        }
-        cleanupRef.current = null;
+      if (ruffleContainerRef.current) {
+        ruffleContainerRef.current.innerHTML = "";
       }
     };
-  }, [gameCode]);
+  }, [engineMode, swfData, isRuffleLoaded]);
+
+  // Build the sandboxed HTML5 document for 60 FPS Canvas execution
+  const iframeSrcDoc = useMemo(() => {
+    const safeJs = (gameCode || "").replace(/<\/script>/gi, "<\\/script>");
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      font-family: monospace;
+    }
+    #screen {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 640px;
+      max-height: 400px;
+      object-fit: contain;
+      background: #000;
+      image-rendering: pixelated;
+      outline: none;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="screen" width="640" height="400" tabindex="0"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('screen');
+      const ctx = canvas.getContext('2d');
+      if (!canvas || !ctx) return;
+
+      canvas.focus();
+      window.addEventListener('click', () => {
+        try { canvas.focus(); } catch (_) {}
+      });
+
+      // Prevent arrow/space scrolling
+      window.addEventListener('keydown', function(e) {
+        if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      try {
+        ${safeJs}
+        if (typeof startReanimatedGame === 'function') {
+          startReanimatedGame(canvas, ctx);
+        } else {
+          throw new Error('startReanimatedGame function entry point not found');
+        }
+      } catch (err) {
+        console.error('Canvas Loop Runtime Error:', err);
+        ctx.fillStyle = '#061722';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText('Seance Recovery Notice:', 20, 50);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px monospace';
+        ctx.fillText(String(err && err.message ? err.message : err), 20, 80);
+      }
+    })();
+  <\/script>
+</body>
+</html>`;
+  }, [gameCode, restartNonce]);
 
   const restartGame = () => {
     playBlip();
-    if (!canvasRef.current || !gameCode) return;
-
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
-    }
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    try {
-      const executor = new Function("canvas", "ctx", `${gameCode}\n return startReanimatedGame(canvas, ctx);`);
-      cleanupRef.current = executor(canvas, ctx);
+    if (engineMode === "ruffle-wasm" && swfData) {
+      setEngineMode("gemma-canvas");
+      setTimeout(() => setEngineMode("ruffle-wasm"), 60);
+    } else {
+      setRestartNonce((n) => n + 1);
       playReanimationChime();
-    } catch (err) {
-      console.error("Restart error:", err);
     }
   };
 
@@ -109,18 +201,60 @@ export function CanvasStage({
       ref={containerRef}
       className="relative flex flex-col rounded-2xl border-2 border-cyan-800/80 bg-[#040f17] p-5 shadow-2xl"
     >
-      {/* Stage Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-cyan-900/50 pb-3 gap-2">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-emerald-400 animate-ping" />
-          <h3 className="font-black text-white text-base uppercase tracking-wider">
-            Reanimated Canvas Stage
-          </h3>
-          <span className="text-xs text-slate-400 font-mono">[{title}]</span>
+      {/* Stage Header with Dual-Engine Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-cyan-900/50 pb-3 gap-3">
+        <div className="flex items-center gap-2.5">
+          <LottieAnimation type="arcade" className="w-8 h-8 shrink-0" />
+          <div>
+            <h3 className="font-black text-white text-base uppercase tracking-wider flex items-center gap-2">
+              <span>Canvas Stage</span>
+              <span className="text-xs text-amber-400 font-mono">[{title}]</span>
+            </h3>
+            <span className="text-[11px] text-emerald-400 font-mono">
+              Engine: {engineMode === "gemma-canvas" ? "⚡ Reanimated HTML5 Canvas (60 FPS)" : "🏺 Authentic Ruffle WASM Player"}
+            </span>
+          </div>
         </div>
 
-        {/* Arcade Action Controls Bar */}
-        <div className="flex items-center gap-2">
+        {/* Dual Engine Switcher & Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Engine Selector Toggle */}
+          <div className="flex items-center rounded-lg bg-slate-900/90 p-1 border border-cyan-900/70 text-xs font-mono">
+            <button
+              onClick={() => {
+                playBlip();
+                setEngineMode("gemma-canvas");
+              }}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
+                engineMode === "gemma-canvas"
+                  ? "bg-amber-500 text-slate-950 shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Play Gemma's re-architected modern HTML5 Canvas JavaScript loop"
+            >
+              <Cpu className="h-3.5 w-3.5" />
+              <span>HTML5 Canvas</span>
+            </button>
+
+            {swfData && (
+              <button
+                onClick={() => {
+                  playBlip();
+                  setEngineMode("ruffle-wasm");
+                }}
+                className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
+                  engineMode === "ruffle-wasm"
+                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Play original Flash vectors via Ruffle WebAssembly"
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span>Ruffle WASM</span>
+              </button>
+            )}
+          </div>
+
           <button
             onClick={() => setEnableCrt(!enableCrt)}
             className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-colors ${
@@ -162,10 +296,10 @@ export function CanvasStage({
         </div>
       </div>
 
-      {/* Cemetery Keeper In-Character Lore Alert if Fallback Triggered */}
+      {/* Cemetery Keeper Lore Banner if Fallback Active */}
       {cemeteryKeeperMessage && (
         <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-amber-600/50 bg-amber-950/40 p-3 text-xs text-amber-200">
-          <span className="text-xl select-none">🪦</span>
+          <LottieAnimation type="skull" className="w-6 h-6 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold uppercase tracking-wider text-amber-300">
               The Cemetery Keeper Speaks:
@@ -177,23 +311,40 @@ export function CanvasStage({
 
       {/* The Screen / Canvas Housing */}
       <div
-        className={`relative mt-4 flex items-center justify-center overflow-hidden rounded-xl border-4 border-slate-800 bg-black crt-curve ${
+        className={`relative mt-4 flex min-h-[380px] w-full items-center justify-center overflow-hidden rounded-xl border-4 border-slate-800 bg-black crt-curve ${
           enableCrt ? "crt-overlay" : ""
         }`}
       >
-        <canvas
-          ref={canvasRef}
-          width={640}
-          height={400}
-          className="w-full h-auto max-h-[500px] object-contain cursor-crosshair select-none bg-black"
+        {/* Engine A: Gemma AI HTML5 Sandboxed Canvas (Default & Primary) */}
+        <div
+          className={`w-full h-[400px] flex items-center justify-center ${
+            engineMode === "gemma-canvas" ? "block" : "hidden"
+          }`}
+        >
+          <iframe
+            key={`canvas-frame-${restartNonce}-${title}`}
+            ref={iframeRef}
+            srcDoc={iframeSrcDoc}
+            sandbox="allow-scripts"
+            title={`Playable Canvas Stage - ${title}`}
+            className="w-full h-full border-none block bg-black"
+          />
+        </div>
+
+        {/* Engine B: Ruffle WebAssembly Native Flash Canvas (Optional Side-by-Side) */}
+        <div
+          ref={ruffleContainerRef}
+          className={`w-full h-[400px] flex items-center justify-center ${
+            engineMode === "ruffle-wasm" ? "block" : "hidden"
+          }`}
         />
 
         {/* Live FPS / Specs Badge */}
-        <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2 rounded bg-black/80 px-2 py-0.5 font-mono text-[10px] text-emerald-400 border border-emerald-900/60">
+        <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2 rounded bg-black/80 px-2 py-0.5 font-mono text-[10px] text-emerald-400 border border-emerald-900/60 z-30">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>60 FPS</span>
+          <span>{engineMode === "ruffle-wasm" ? "RUFFLE WASM" : "HTML5 CANVAS"}</span>
           <span className="text-slate-500">|</span>
-          <span>HTML5 CANVAS</span>
+          <span>60 FPS</span>
         </div>
       </div>
 
@@ -214,10 +365,9 @@ export function CanvasStage({
         </div>
 
         <span className="text-[11px] font-mono text-slate-500">
-          Runs locally with Zero Plugins
+          Pure HTML5 Canvas • Zero Flash Plugin Required
         </span>
       </div>
     </div>
   );
 }
-

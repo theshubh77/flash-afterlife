@@ -12,12 +12,15 @@ import { FLASH_PRESETS, FlashPreset } from "@/lib/presets/flashPresets";
 import { SwfMetadata } from "@/lib/swf/parser";
 import { NormalizedFlashAST } from "@/lib/mastra/tools/normalizeActionScript";
 import { playReanimationChime, playBlip } from "@/lib/audio/retroSynth";
-import { Flame, Sparkles, Terminal, BookOpen, ShieldCheck } from "lucide-react";
+import { Terminal, Layers, Sparkles } from "lucide-react";
+import { LottieAnimation } from "@/components/LottieAnimation";
 
 export default function Home() {
   const [activePreset, setActivePreset] = useState<FlashPreset>(FLASH_PRESETS[0]);
   const [isUploadMode, setIsUploadMode] = useState<boolean>(false);
 
+  // Canvas State & SWF Binary Buffer for Live Ruffle WASM Execution
+  const [currentSwfData, setCurrentSwfData] = useState<ArrayBuffer | null>(null);
   const [currentGameCode, setCurrentGameCode] = useState<string>(FLASH_PRESETS[0].defaultJsCode);
   const [currentTitle, setCurrentTitle] = useState<string>(FLASH_PRESETS[0].title);
   const [currentYear, setCurrentYear] = useState<number>(FLASH_PRESETS[0].year);
@@ -33,7 +36,7 @@ export default function Home() {
   const [cemeteryKeeperMessage, setCemeteryKeeperMessage] = useState<string | undefined>(undefined);
   const [isFallback, setIsFallback] = useState<boolean>(false);
   const [normalizedAST, setNormalizedAST] = useState<NormalizedFlashAST | undefined>(undefined);
-  const [modelUsed, setModelUsed] = useState<string>("Gemma-3-27B via Mastra");
+  const [modelUsed, setModelUsed] = useState<string>("Gemma-4-26B via Mastra");
 
   const [isManifestoOpen, setIsManifestoOpen] = useState<boolean>(false);
   const [isSeanceOpen, setIsSeanceOpen] = useState<boolean>(false);
@@ -42,6 +45,7 @@ export default function Home() {
   const handleSelectPreset = (preset: FlashPreset) => {
     setActivePreset(preset);
     setIsUploadMode(false);
+    setCurrentSwfData(null); // Clear raw SWF so canvas uses the preset's rich Canvas engine
     setCurrentGameCode(preset.defaultJsCode);
     setCurrentTitle(preset.title);
     setCurrentYear(preset.year);
@@ -54,18 +58,22 @@ export default function Home() {
     setAs2Code(preset.as2Code);
     setCemeteryKeeperMessage(undefined);
     setIsFallback(false);
-    setModelUsed("Gemma-3-27B via Mastra");
+    setModelUsed("Gemma-4-26B via Mastra");
     playReanimationChime();
   };
 
-  // Handle Custom SWF Upload & Reanimation Pipeline
+  // Redesigned SWF-to-Canvas Reanimation Pipeline
   const handleBytecodeExtracted = async (
     extractedAs2: string,
     metadata: SwfMetadata,
-    filename: string
+    filename: string,
+    rawBuffer: ArrayBuffer
   ) => {
     setIsProcessing(true);
     setAs2Code(extractedAs2);
+
+    // Immediately pass the raw SWF buffer to the Canvas Stage for 100% reliable execution via Ruffle WASM!
+    setCurrentSwfData(rawBuffer);
 
     try {
       const cleanTitle = filename.replace(/\.swf$/i, "");
@@ -111,7 +119,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen graveyard-bg flex flex-col text-slate-100 selection:bg-amber-500 selection:text-black">
-      {/* Top Atmospheric Header */}
+      {/* Top Atmospheric Header with Lottie Ghost */}
       <Header
         onOpenManifesto={() => setIsManifestoOpen(true)}
         onOpenSeance={() => setIsSeanceOpen(true)}
@@ -141,6 +149,7 @@ export default function Home() {
           <div className="lg:col-span-7 space-y-4">
             <CanvasStage
               gameCode={currentGameCode}
+              swfData={currentSwfData}
               title={currentTitle}
               controls={currentControls}
               cemeteryKeeperMessage={cemeteryKeeperMessage}
@@ -150,14 +159,14 @@ export default function Home() {
 
             {/* Quick Action Bar under Canvas */}
             <div className="flex items-center justify-between rounded-xl bg-[#061722]/80 border border-cyan-900/60 p-4 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-xl select-none">🪦</span>
+              <div className="flex items-center gap-2.5">
+                <LottieAnimation type="portal" className="w-6 h-6 shrink-0" />
                 <div>
                   <span className="font-bold text-white uppercase tracking-wider">
-                    Preservation Status: ACTIVE
+                    SWF-TO-CANVAS PIPELINE: ACTIVE
                   </span>
                   <p className="text-[11px] text-slate-400">
-                    Engineered for Hacktoberfest 2026: Ghost in the Machine
+                    Dual-Engine: Ruffle WebAssembly + Gemma-4 Open-Weights
                   </p>
                 </div>
               </div>
@@ -174,7 +183,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Column: Virtual Ofrenda Altar (5 Cols) */}
+          {/* Right Column: Virtual Ofrenda Altar with Lottie Candle (5 Cols) */}
           <div className="lg:col-span-5">
             <OfrendaAltar
               title={currentTitle}
@@ -213,11 +222,11 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <span>🪦 FlashAfterlife</span>
             <span>•</span>
-            <span className="text-amber-400">Gemma-3-27B</span>
+            <span className="text-amber-400">Gemma-4-26B</span>
             <span>•</span>
             <span className="text-cyan-400">Mastra Agents</span>
             <span>•</span>
-            <span className="text-emerald-400">Render Hosted</span>
+            <span className="text-emerald-400">Ruffle WASM Canvas</span>
           </div>
 
           <div>

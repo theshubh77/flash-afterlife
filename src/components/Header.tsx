@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Sparkles, Flame, Skull, Cpu, Cloud, Terminal } from "lucide-react";
+import { LottieAnimation } from "./LottieAnimation";
 
 interface HeaderProps {
   onOpenManifesto: () => void;
@@ -16,21 +17,21 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
 
       {/* Atmospheric Graveyard Sky with Full Moon & Bats */}
       <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Luminous Halloween Full Moon (Center-Right Glow) */}
+        {/* Luminous Halloween Full Moon Glow */}
         <div className="pointer-events-none absolute -top-12 right-12 h-36 w-36 rounded-full moon-glow opacity-30 blur-sm sm:h-48 sm:w-48 sm:opacity-40" />
 
         <div className="relative z-10 flex flex-col items-center justify-between gap-6 md:flex-row">
-          {/* Logo & Main Title Area */}
+          {/* Logo & Main Title Area with Lottie Ghost */}
           <div className="flex flex-col items-center text-center md:items-start md:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
               <Flame className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
               <span>Día de los Muertos • Hacktoberfest 2026 Final Challenge</span>
               <span className="hidden sm:inline text-amber-300/60">|</span>
-              <span className="hidden sm:inline text-emerald-400">Week 4: Ghost in the Machine</span>
+              <span className="hidden sm:inline text-emerald-400">Ghost in the Machine</span>
             </div>
 
             <div className="mt-3 flex items-center gap-3">
-              <span className="text-4xl sm:text-5xl select-none">🪦</span>
+              <LottieAnimation type="ghost" className="w-12 h-14 sm:w-16 sm:h-18 shrink-0" />
               <div>
                 <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
                   FLASH <span className="text-amber-400">AFTERLIFE</span>
@@ -43,10 +44,10 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
 
             <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-300">
               Adobe pulled the plug in 2020, entombing 20 years of indie web games.
-              Using <span className="font-semibold text-amber-300">Gemma</span> open-weights and{" "}
-              <span className="font-semibold text-cyan-300">Mastra</span> agent workflows, we extract
-              ghost bytecode from vintage <code className="rounded bg-black/40 px-1 text-amber-300">.SWF</code> binaries and
-              resurrect them on HTML5 Canvas in candlelight.
+              Using <span className="font-semibold text-amber-300">Gemma-4</span> open-weights,{" "}
+              <span className="font-semibold text-cyan-300">Mastra</span> agent workflows, and native{" "}
+              <span className="font-semibold text-emerald-300">Ruffle WASM</span>, we resurrect
+              vintage <code className="rounded bg-black/40 px-1 text-amber-300">.SWF</code> games directly onto HTML5 Canvas in candlelight.
             </p>
           </div>
 
@@ -88,4 +89,3 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
     </header>
   );
 }
-

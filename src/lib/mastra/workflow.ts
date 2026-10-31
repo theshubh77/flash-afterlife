@@ -47,6 +47,36 @@ export interface ReanimationResponse {
 // In-Memory LRU Cache to preserve free-tier API tokens and handle judges testing repeatedly
 const reanimationCache = new Map<string, ReanimationResponse>();
 
+function extractJsonPayload(text: string): Record<string, unknown> | null {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    // continue
+  }
+
+  const blockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (blockMatch && blockMatch[1]) {
+    try {
+      return JSON.parse(blockMatch[1].trim());
+    } catch {
+      // continue
+    }
+  }
+
+  const firstOpen = text.indexOf("{");
+  const lastClose = text.lastIndexOf("}");
+  if (firstOpen !== -1 && lastClose > firstOpen) {
+    try {
+      return JSON.parse(text.slice(firstOpen, lastClose + 1));
+    } catch {
+      // continue
+    }
+  }
+
+  return null;
+}
+
 /**
  * Executes the Mastra Reanimation Pipeline
  */
@@ -87,7 +117,7 @@ export async function executeMastraReanimation(
     let calaveritaEnglish = "";
     let calaveritaSpanish = "";
     let generatedControls: string[] = [];
-    let modelUsed = "gemma-2-27b-it (Google AI Studio)";
+    let modelUsed = "gemma-4-26b-a4b-it (Google AI Studio)";
     let isFallback = false;
     let cemeteryKeeperMessage: string | undefined = undefined;
 
@@ -137,8 +167,8 @@ Respond ONLY with valid JSON in this exact structure:
   "controls": ["Spacebar: Fly Up / Action", "Arrow Keys / Mouse: Move"]
 }`;
 
-        // Call Google Gemma open-weight models (defaults to gemma-2-27b-it, with gemma-2-9b-it backup)
-        const primaryModel = process.env.GEMMA_MODEL_NAME || "gemma-2-27b-it";
+        // Call Google Gemma open-weight models (defaults to gemma-4-26b-a4b-it)
+        const primaryModel = process.env.GEMMA_MODEL_NAME || "gemma-4-26b-a4b-it";
         let response;
         try {
           response = await ai.models.generateContent({
@@ -147,27 +177,23 @@ Respond ONLY with valid JSON in this exact structure:
           });
           modelUsed = `Gemma Open-Weight (${primaryModel})`;
         } catch (firstTryErr) {
-          console.warn(`Primary Gemma model (${primaryModel}) hit rate limit, trying gemma-2-9b-it fallback:`, firstTryErr);
+          console.warn(`Primary Gemma model (${primaryModel}) hit rate limit, trying gemini-2.5-flash fallback:`, firstTryErr);
           response = await ai.models.generateContent({
-            model: "gemma-2-9b-it",
+            model: "gemini-2.5-flash",
             contents: prompt,
           });
-          modelUsed = "Gemma Open-Weight (gemma-2-9b-it)";
+          modelUsed = "Gemma / Gemini Hybrid Fallback";
         }
 
         const rawText = response.text || "";
-        const cleanJsonText = rawText
-          .replace(/^```(json)?\s*/i, "")
-          .replace(/\s*```$/i, "")
-          .trim();
+        const parsed = extractJsonPayload(rawText);
 
-        const parsed = JSON.parse(cleanJsonText);
-        if (parsed.gameCode && parsed.gameCode.includes("startReanimatedGame")) {
+        if (parsed && typeof parsed.gameCode === "string" && parsed.gameCode.includes("startReanimatedGame")) {
           generatedJs = parsed.gameCode;
-          calaveritaEnglish = parsed.calaveritaEnglish;
-          calaveritaSpanish = parsed.calaveritaSpanish;
+          calaveritaEnglish = typeof parsed.calaveritaEnglish === "string" ? parsed.calaveritaEnglish : "";
+          calaveritaSpanish = typeof parsed.calaveritaSpanish === "string" ? parsed.calaveritaSpanish : "";
           if (Array.isArray(parsed.controls)) {
-            generatedControls = parsed.controls;
+            generatedControls = parsed.controls.map((c) => String(c));
           }
         } else {
           isFallback = true;

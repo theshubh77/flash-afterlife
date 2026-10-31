@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Flame, Sparkles, Volume2, Skull, Heart, Globe, Cpu } from "lucide-react";
+import { Sparkles, Volume2, Heart, Globe, Cpu } from "lucide-react";
 import confetti from "canvas-confetti";
 import { playCalaveritaBell } from "@/lib/audio/retroSynth";
+import { LottieAnimation } from "./LottieAnimation";
 
 interface OfrendaAltarProps {
   title: string;
@@ -34,12 +35,12 @@ export function OfrendaAltar({
 
     // Fire marigold / cempasúchil orange & gold petals confetti
     confetti({
-      particleCount: 65,
-      spread: 70,
+      particleCount: 75,
+      spread: 75,
       origin: { y: 0.7 },
       colors: ["#f59e0b", "#ea580c", "#fde047", "#f97316", "#ffffff"],
       shapes: ["circle"],
-      scalar: 1.1,
+      scalar: 1.15,
     });
   };
 
@@ -52,10 +53,10 @@ export function OfrendaAltar({
       {/* Papel Picado Decorative Ribbon */}
       <div className="h-2 w-full papel-picado mb-4 opacity-90 rounded-sm" />
 
-      {/* Ofrenda Header */}
+      {/* Ofrenda Header with Lottie Candle */}
       <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="text-2xl select-none">🕯️</span>
+          <LottieAnimation type="skull" className="w-8 h-8 shrink-0" />
           <div>
             <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-amber-300">
               The Digital Ofrenda
@@ -66,14 +67,9 @@ export function OfrendaAltar({
           </div>
         </div>
 
-        {/* Flickering Animated Candle */}
+        {/* Lottie Flickering Candle Flame Animation */}
         <div className="flex items-center gap-1.5 rounded-full bg-black/60 border border-amber-500/40 px-3 py-1">
-          <div className="relative h-6 w-3 flex items-end justify-center">
-            {/* Candle Body */}
-            <div className="h-3 w-2.5 rounded-t-sm bg-gradient-to-b from-amber-100 to-amber-200 border border-amber-400/50" />
-            {/* Candle Flame with Flicker Animation */}
-            <div className="candle-flame absolute -top-3.5 h-4 w-2 rounded-full bg-gradient-to-t from-amber-500 via-yellow-300 to-white" />
-          </div>
+          <LottieAnimation type="candle" className="w-8 h-12" />
           <span className="text-[10px] font-mono text-amber-300 uppercase tracking-wider">
             Candlelit
           </span>
