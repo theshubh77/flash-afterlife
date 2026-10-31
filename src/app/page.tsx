@@ -6,6 +6,7 @@ import { AlmanacSelector } from "@/components/AlmanacSelector";
 import { DropZone } from "@/components/DropZone";
 import { CanvasStage } from "@/components/CanvasStage";
 import { OfrendaAltar } from "@/components/OfrendaAltar";
+import { GhostSeanceWall } from "@/components/GhostSeanceWall";
 import { CodeSeanceModal } from "@/components/CodeSeanceModal";
 import { WhyOpenSourceManifesto } from "@/components/WhyOpenSourceManifesto";
 import { FLASH_PRESETS, FlashPreset } from "@/lib/presets/flashPresets";
@@ -36,7 +37,7 @@ export default function Home() {
   const [cemeteryKeeperMessage, setCemeteryKeeperMessage] = useState<string | undefined>(undefined);
   const [isFallback, setIsFallback] = useState<boolean>(false);
   const [normalizedAST, setNormalizedAST] = useState<NormalizedFlashAST | undefined>(undefined);
-  const [modelUsed, setModelUsed] = useState<string>("Gemma-4-26B via Mastra");
+  const [modelUsed, setModelUsed] = useState<string>("Neural Code Transpiler");
 
   const [isManifestoOpen, setIsManifestoOpen] = useState<boolean>(false);
   const [isSeanceOpen, setIsSeanceOpen] = useState<boolean>(false);
@@ -57,7 +58,7 @@ export default function Home() {
     setAs2Code(preset.as2Code);
     setCemeteryKeeperMessage(undefined);
     setIsFallback(false);
-    setModelUsed("Gemma-4-26B via Mastra");
+    setModelUsed("Neural Code Transpiler");
     playReanimationChime();
 
     // Pre-load sample SWF buffer so Ruffle can play it if user toggles engine
@@ -131,14 +132,24 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#04090e] flex flex-col text-slate-100 selection:bg-amber-400 selection:text-black relative overflow-x-hidden">
-      {/* Ambient Lighting Background Spheres for Glassmorphism */}
-      <div className="pointer-events-none fixed top-20 left-10 h-[450px] w-[450px] rounded-full bg-cyan-600/[0.07] blur-[130px] -z-10" />
-      <div className="pointer-events-none fixed top-40 right-10 h-[500px] w-[500px] rounded-full bg-amber-500/[0.07] blur-[140px] -z-10" />
-      <div className="pointer-events-none fixed bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-emerald-600/[0.05] blur-[150px] -z-10" />
+  const handleSelectUploadMode = () => {
+    setIsUploadMode(true);
+    setTimeout(() => {
+      const el = document.getElementById("upload-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 80);
+  };
 
-      {/* Top Atmospheric Header */}
+  return (
+    <div className="min-h-screen flex flex-col text-slate-100 selection:bg-orange-500 selection:text-white relative overflow-x-hidden">
+      {/* Ambient Lighting Background Spheres */}
+      <div className="pointer-events-none fixed top-24 left-10 h-[450px] w-[450px] rounded-full bg-purple-600/[0.12] blur-[140px] -z-10" />
+      <div className="pointer-events-none fixed top-44 right-10 h-[500px] w-[500px] rounded-full bg-orange-500/[0.12] blur-[150px] -z-10" />
+      <div className="pointer-events-none fixed bottom-40 left-1/3 h-[500px] w-[500px] rounded-full bg-amber-500/[0.08] blur-[150px] -z-10" />
+
+      {/* Top Atmospheric Header with Korean Halloween Hero */}
       <Header
         onOpenManifesto={() => setIsManifestoOpen(true)}
         onOpenSeance={() => setIsSeanceOpen(true)}
@@ -150,16 +161,19 @@ export default function Home() {
         <AlmanacSelector
           selectedPresetId={activePreset.id}
           onSelectPreset={handleSelectPreset}
-          onSelectUploadMode={() => setIsUploadMode(!isUploadMode)}
+          onSelectUploadMode={handleSelectUploadMode}
           isUploadMode={isUploadMode}
         />
 
-        {/* Custom SWF Upload Zone (revealed when user clicks Upload or toggles mode) */}
+        {/* Custom SWF Upload Zone (revealed and scrolled into view on click) */}
         {isUploadMode && (
-          <DropZone
-            onBytecodeExtracted={handleBytecodeExtracted}
-            isProcessing={isProcessing}
-          />
+          <div id="upload-section" className="scroll-mt-6 transition-all duration-300">
+            <DropZone
+              onBytecodeExtracted={handleBytecodeExtracted}
+              isProcessing={isProcessing}
+              onClose={() => setIsUploadMode(false)}
+            />
+          </div>
         )}
 
         {/* The Two Main Pillars: Reanimated Canvas Stage & The Virtual Ofrenda */}
@@ -177,15 +191,15 @@ export default function Home() {
             />
 
             {/* Quick Action Bar under Canvas */}
-            <div className="flex items-center justify-between rounded-2xl glass-panel p-4 text-xs">
-              <div className="flex items-center gap-2.5">
-                <LottieAnimation type="portal" className="w-6 h-6 shrink-0" />
+            <div className="flex items-center justify-between rounded-2xl glass-panel p-4 text-xs border border-purple-500/20">
+              <div className="flex items-center gap-3">
+                <LottieAnimation type="portal" className="w-7 h-7 shrink-0" />
                 <div>
-                  <span className="font-bold text-white uppercase tracking-wider">
+                  <span className="font-extrabold text-white uppercase tracking-wider">
                     SWF-TO-CANVAS PIPELINE: ACTIVE
                   </span>
-                  <p className="text-[11px] text-slate-400">
-                    Dual-Engine: Pure HTML5 Canvas + Ruffle WASM Vectors
+                  <p className="text-[11px] text-purple-200/70">
+                    Dual-Engine: Pure HTML5 Canvas + WebAssembly Vectors
                   </p>
                 </div>
               </div>
@@ -193,7 +207,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsSeanceOpen(true)}
-                  className="glass-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-cyan-200 uppercase tracking-wider hover:text-white"
+                  className="candy-wrapper-pill flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-amber-200 uppercase tracking-wider hover:text-white"
                 >
                   <Terminal className="h-3.5 w-3.5" />
                   <span>Inspect Bytecode</span>
@@ -202,7 +216,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Column: Virtual Ofrenda Altar with Lottie Candle (5 Cols) */}
+          {/* Right Column: Virtual Ofrenda Altar with User's Lottie Candle (5 Cols) */}
           <div className="lg:col-span-5">
             <OfrendaAltar
               title={currentTitle}
@@ -216,6 +230,9 @@ export default function Home() {
             />
           </div>
         </div>
+
+        {/* Interactive Ghost Séance / Community Tribute Wall (Matching Inspiration Screen) */}
+        <GhostSeanceWall />
       </main>
 
       {/* Code Séance Modal */}
@@ -235,24 +252,42 @@ export default function Home() {
         onClose={() => setIsManifestoOpen(false)}
       />
 
-      {/* Footer */}
-      <footer className="mt-12 border-t border-white/10 glass-panel py-6 text-center text-xs text-slate-400 font-mono">
-        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span>🪦 FlashAfterlife</span>
-            <span className="text-white/20">•</span>
-            <span className="text-amber-300">Gemma-4-26B</span>
-            <span className="text-white/20">•</span>
-            <span className="text-cyan-300">Mastra Agents</span>
-            <span className="text-white/20">•</span>
-            <span className="text-emerald-300">HTML5 Canvas</span>
-          </div>
+      {/* Wavy Pumpkin Orange Transition & Footer (Matching Inspiration Screen Base) */}
+      <div className="mt-16 w-full">
+        {/* Playful Halloween SVG Wave */}
+        <svg
+          viewBox="0 0 1440 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-12 sm:h-20 text-[#ff6600] preserve-3d"
+        >
+          <path
+            d="M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,69.3L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+            fill="currentColor"
+          />
+        </svg>
 
-          <div className="text-slate-400">
-            Built with 🕯️ for the Hacktoberfest 2026 Open-Source AI Challenge
+        {/* Pumpkin Orange Festive Footer - Sole Technical Crediting Zone */}
+        <footer className="w-full bg-gradient-to-b from-[#ff6600] to-[#e65100] py-8 text-xs font-mono text-slate-950 font-bold shadow-2xl">
+          <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-black">
+              <span>🎃 FlashAfterlife</span>
+              <span className="text-black/30">•</span>
+              <span className="bg-white/20 px-2.5 py-0.5 rounded-full">Gemma-4-26B</span>
+              <span className="text-black/30">•</span>
+              <span className="bg-white/20 px-2.5 py-0.5 rounded-full">Mastra Agents</span>
+              <span className="text-black/30">•</span>
+              <span className="bg-white/20 px-2.5 py-0.5 rounded-full">Render Cloud</span>
+              <span className="text-black/30">•</span>
+              <span className="bg-white/20 px-2.5 py-0.5 rounded-full">HTML5 Canvas</span>
+            </div>
+
+            <div className="text-slate-950 text-center sm:text-right font-black">
+              Built with 🕯️ for the Hacktoberfest 2026 Open-Source AI Challenge • Ghost in the Machine
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
