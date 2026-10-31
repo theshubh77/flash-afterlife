@@ -1,7 +1,9 @@
 # 🪦 FlashAfterlife: The Flash Game Preservation Altar
 
 > **Hacktoberfest 2026 Open-Source AI Challenge: Week 4 "Ghost in the Machine"**  
-> *Where departed 2000s Macromedia & Adobe Flash binaries ascend into native HTML5 through open-weight neural necromancy.*
+> *Where departed 2000s Macromedia & Adobe Flash binaries ascend into native HTML5 through open-weight neural necromancy.*  
+> 
+> 🎮 **Live Altar:** [https://flash-afterlife.onrender.com/](https://flash-afterlife.onrender.com/)
 
 ---
 
@@ -9,7 +11,7 @@
 [![Google Gemma](https://img.shields.io/badge/Google%20Gemma-Open--Weights%20AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/gemma)
 [![Mastra Agent Framework](https://img.shields.io/badge/Mastra-Multi--Step%20Agentic%20Workflow-8b5cf6?style=for-the-badge&logo=typescript&logoColor=white)](https://mastra.ai)
 [![SerpAPI](https://img.shields.io/badge/SerpAPI-Retro%20Gaming%20Lore%20Search-34A853?style=for-the-badge&logo=google-search&logoColor=white)](https://serpapi.com)
-[![Deployed on Render](https://img.shields.io/badge/Render-Deployed%20Live-46e3b7?style=for-the-badge&logo=render&logoColor=black)](https://render.com)
+[![Deployed on Render](https://img.shields.io/badge/Render-Deployed%20Live-46e3b7?style=for-the-badge&logo=render&logoColor=black)](https://flash-afterlife.onrender.com/)
 [![Next.js 16](https://img.shields.io/badge/Next.js%2016-React%2019%20%2B%20Tailwind%20v4-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
@@ -58,8 +60,8 @@ When users upload custom or obscure `.swf` files, **SerpAPI** (`src/lib/mastra/t
 - **Zero-Config Fallback:** If SerpAPI keys are not set, the workflow seamlessly falls back to DuckDuckGo Instant Answers and a curated local almanac archive.
 
 ### 4. 🚀 Production Deployment on Render
-FlashAfterlife is fully configured for zero-friction cloud deployment on **Render** via Infrastructure-as-Code:
-- Includes [`render.yaml`](file:///d:/All%20Data/Work/Projects/flash-afterlife/render.yaml) describing the Node.js web service, build steps, and environment variable bindings.
+FlashAfterlife is deployed live on **Render** at [https://flash-afterlife.onrender.com/](https://flash-afterlife.onrender.com/):
+- Fully configured via Infrastructure-as-Code with [`render.yaml`](file:///d:/All%20Data/Work/Projects/flash-afterlife/render.yaml) describing the Node.js web service, build steps, and environment variable bindings.
 - Automatic server-side rendering (SSR) and API routes with zero server overhead.
 
 ---
@@ -218,6 +220,8 @@ This project is ready to deploy directly to **Render** using the included [`rend
    - `GEMMA_MODEL_NAME`: `gemma-4-26b-a4b-it`
    - `SERPAPI_API_KEY`: Your SerpAPI key (optional).
 7. Click **Apply**. Your Altar will be live on Render in minutes!
+
+Live Production URL: [https://flash-afterlife.onrender.com/](https://flash-afterlife.onrender.com/)
 
 ---
 
