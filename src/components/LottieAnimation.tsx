@@ -5,11 +5,12 @@ import { Lottie } from "lottie-react";
 
 import candleData from "@/assets/lottie/candleFlame.json";
 import ghostData from "@/assets/lottie/spookyGhost.json";
+import lanternData from "@/assets/lottie/lantern.json";
 import skullData from "@/assets/lottie/sugarSkull.json";
 import portalData from "@/assets/lottie/summoningPortal.json";
 import arcadeData from "@/assets/lottie/retroArcade.json";
 
-export type LottieAnimationType = "candle" | "ghost" | "skull" | "portal" | "arcade";
+export type LottieAnimationType = "candle" | "ghost" | "lantern" | "skull" | "portal" | "arcade";
 
 interface LottieAnimationProps {
   type: LottieAnimationType;
@@ -21,6 +22,7 @@ interface LottieAnimationProps {
 const animationMap: Record<LottieAnimationType, object> = {
   candle: candleData,
   ghost: ghostData,
+  lantern: lanternData,
   skull: skullData,
   portal: portalData,
   arcade: arcadeData,
