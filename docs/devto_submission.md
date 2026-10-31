@@ -160,3 +160,4 @@ We are entering the following categories for the Hacktoberfest Open-Source AI Ch
 ---
 
 *Dedicated to the millions of animators, sound designers, and indie developers whose passion defined the golden age of the web.* 🕯️💀🎮
+
