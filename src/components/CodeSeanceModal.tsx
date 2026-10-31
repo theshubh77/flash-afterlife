@@ -54,7 +54,7 @@ export function CodeSeanceModal({
                 The Code Séance: {title}
               </h3>
               <p className="text-xs text-slate-400">
-                ActionScript 2.0 Bytecode ↔ Gemma Reanimated Canvas JavaScript
+                ActionScript 2.0 Bytecode ↔ Reanimated Canvas JavaScript
               </p>
             </div>
           </div>
@@ -80,7 +80,7 @@ export function CodeSeanceModal({
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                Mastra AST
+                Normalized AST
               </button>
             </div>
 
@@ -119,13 +119,13 @@ export function CodeSeanceModal({
               </div>
             </div>
 
-            {/* Right: Gemma Canvas JavaScript */}
+            {/* Right: Reanimated Canvas JavaScript */}
             <div className="flex flex-col bg-black/60 overflow-hidden">
               <div className="flex items-center justify-between border-b border-white/10 glass-panel px-4 py-2.5">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-xs font-mono font-bold text-emerald-300">
-                    THE REANIMATED: HTML5 Canvas ECMAScript (Gemma)
+                    THE REANIMATED: HTML5 Canvas ECMAScript (60 FPS)
                   </span>
                 </div>
                 <button
@@ -148,7 +148,7 @@ export function CodeSeanceModal({
               <div className="rounded-2xl glass-card p-5 font-mono text-xs">
                 <div className="flex items-center gap-2 text-sm font-bold text-cyan-400 border-b border-white/10 pb-2 mb-3">
                   <Cpu className="h-4 w-4" />
-                  <span>Mastra Tool: normalizeActionScriptTool Output</span>
+                  <span>Bytecode Normalization & Semantic AST</span>
                 </div>
                 <pre className="text-slate-300 overflow-auto max-h-72">
                   {JSON.stringify(normalizedAST, null, 2)}
@@ -158,7 +158,7 @@ export function CodeSeanceModal({
               <div className="rounded-2xl glass-card p-5 font-mono text-xs">
                 <div className="flex items-center gap-2 text-sm font-bold text-emerald-400 border-b border-white/10 pb-2 mb-3">
                   <ShieldCheck className="h-4 w-4" />
-                  <span>Mastra Tool: sandboxSanitizerTool Audit</span>
+                  <span>Sandboxed Security & Anti-Exploit Audit</span>
                 </div>
                 <p className="text-slate-300">
                   Status: <span className="text-emerald-400 font-bold">VERIFIED SECURE</span>
@@ -174,7 +174,7 @@ export function CodeSeanceModal({
                   <span>AI Transpilation Engine</span>
                 </div>
                 <p className="text-slate-300">
-                  Model: <span className="text-amber-300 font-bold">{modelUsed || "gemma-4-26b-a4b-it"}</span>
+                  Engine: <span className="text-amber-300 font-bold">Neural Code Transpiler (Client Sandboxed)</span>
                 </p>
               </div>
             </div>

@@ -61,19 +61,19 @@ export function WhyOpenSourceManifesto({ isOpen, onClose }: WhyOpenSourceManifes
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="rounded-2xl glass-card p-4">
                 <div className="flex items-center gap-2 font-bold text-xs text-amber-300 mb-1.5">
-                  <Unlock className="h-4 w-4" /> Open Weights
+                  <Unlock className="h-4 w-4" /> Open Architecture
                 </div>
                 <p className="text-xs text-slate-300/90 leading-relaxed">
-                  Gemma open weights ensure that code necromancy can run locally or anywhere without corporate license gatekeeping.
+                  Open code intelligence ensures that code resurrection runs locally and transparently without corporate gatekeeping.
                 </p>
               </div>
 
               <div className="rounded-2xl glass-card p-4">
                 <div className="flex items-center gap-2 font-bold text-xs text-cyan-300 mb-1.5">
-                  <Shield className="h-4 w-4" /> Mastra Agents
+                  <Shield className="h-4 w-4" /> Agentic Transpilation
                 </div>
                 <p className="text-xs text-slate-300/90 leading-relaxed">
-                  Open-source agent orchestration normalizes undocumented bytecode into open web standards.
+                  Automated AST normalizers decompile undocumented binary tags into clean, human-readable web standards.
                 </p>
               </div>
 
