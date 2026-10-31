@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import { RotateCcw, Monitor, Maximize2, Terminal, Layers, Cpu, Play } from "lucide-react";
+import React, { useRef, useState, useMemo } from "react";
+import { RotateCcw, Monitor, Maximize2, Terminal, Cpu } from "lucide-react";
 import { playBlip, playReanimationChime } from "@/lib/audio/retroSynth";
 import { LottieAnimation } from "./LottieAnimation";
 
 interface CanvasStageProps {
   gameCode: string;
-  swfData?: ArrayBuffer | null;
   title: string;
   controls: string[];
   cemeteryKeeperMessage?: string;
@@ -17,7 +16,6 @@ interface CanvasStageProps {
 
 export function CanvasStage({
   gameCode,
-  swfData,
   title,
   controls,
   cemeteryKeeperMessage,
@@ -25,77 +23,10 @@ export function CanvasStage({
   onOpenCodeSeance,
 }: CanvasStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const ruffleContainerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Engine Mode: Default is ALWAYS the Reanimated HTML5 Canvas!
-  const [engineMode, setEngineMode] = useState<"gemma-canvas" | "ruffle-wasm">("gemma-canvas");
   const [enableCrt, setEnableCrt] = useState(true);
-  const [isRuffleLoaded, setIsRuffleLoaded] = useState(false);
   const [restartNonce, setRestartNonce] = useState(0);
-
-  // Dynamically load open-source Ruffle WebAssembly Flash Player for optional comparison
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if ((window as unknown as { RufflePlayer?: unknown }).RufflePlayer) {
-      setIsRuffleLoaded(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/@ruffle-rs/ruffle";
-    script.async = true;
-    script.onload = () => setIsRuffleLoaded(true);
-    script.onerror = () => {
-      console.warn("Ruffle WASM CDN unavailable. Primary Gemma HTML5 Canvas active.");
-      setEngineMode("gemma-canvas");
-    };
-    document.head.appendChild(script);
-  }, []);
-
-  // Mount Ruffle Player ONLY when user explicitly toggles to "ruffle-wasm"
-  useEffect(() => {
-    if (engineMode !== "ruffle-wasm" || !ruffleContainerRef.current || !swfData) return;
-
-    const win = window as unknown as {
-      RufflePlayer?: {
-        newest: () => {
-          createPlayer: () => {
-            style: { width: string; height: string };
-            load: (config: { data: ArrayBuffer; autoplay: string; letterbox: string }) => Promise<void>;
-          };
-        };
-      };
-    };
-
-    if (win.RufflePlayer) {
-      try {
-        const ruffle = win.RufflePlayer.newest();
-        const player = ruffle.createPlayer();
-        player.style.width = "100%";
-        player.style.height = "100%";
-
-        ruffleContainerRef.current.innerHTML = "";
-        ruffleContainerRef.current.appendChild(player as unknown as Node);
-
-        player.load({
-          data: swfData,
-          autoplay: "on",
-          letterbox: "on",
-        });
-      } catch (err) {
-        console.error("Ruffle mount error:", err);
-        setEngineMode("gemma-canvas");
-      }
-    }
-
-    return () => {
-      if (ruffleContainerRef.current) {
-        ruffleContainerRef.current.innerHTML = "";
-      }
-    };
-  }, [engineMode, swfData, isRuffleLoaded]);
 
   // Build the sandboxed HTML5 document for 60 FPS Canvas execution
   const iframeSrcDoc = useMemo(() => {
@@ -145,7 +76,7 @@ export function CanvasStage({
         try { canvas.focus(); } catch (_) {}
       });
 
-      // Prevent arrow/space scrolling
+      // Prevent arrow/space scrolling on the parent window
       window.addEventListener('keydown', function(e) {
         if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
           e.preventDefault();
@@ -157,7 +88,7 @@ export function CanvasStage({
         if (typeof startReanimatedGame === 'function') {
           startReanimatedGame(canvas, ctx);
         } else {
-          throw new Error('startReanimatedGame function entry point not found');
+          throw new Error('startReanimatedGame entry point not found in code');
         }
       } catch (err) {
         console.error('Canvas Loop Runtime Error:', err);
@@ -165,7 +96,7 @@ export function CanvasStage({
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 16px monospace';
-        ctx.fillText('Seance Recovery Notice:', 20, 50);
+        ctx.fillText('Séance Recovery Active:', 20, 50);
         ctx.fillStyle = '#94a3b8';
         ctx.font = '12px monospace';
         ctx.fillText(String(err && err.message ? err.message : err), 20, 80);
@@ -178,13 +109,8 @@ export function CanvasStage({
 
   const restartGame = () => {
     playBlip();
-    if (engineMode === "ruffle-wasm" && swfData) {
-      setEngineMode("gemma-canvas");
-      setTimeout(() => setEngineMode("ruffle-wasm"), 60);
-    } else {
-      setRestartNonce((n) => n + 1);
-      playReanimationChime();
-    }
+    setRestartNonce((n) => n + 1);
+    playReanimationChime();
   };
 
   const toggleFullscreen = () => {
@@ -201,7 +127,7 @@ export function CanvasStage({
       ref={containerRef}
       className="relative flex flex-col rounded-2xl border-2 border-cyan-800/80 bg-[#040f17] p-5 shadow-2xl"
     >
-      {/* Stage Header with Dual-Engine Selector */}
+      {/* Stage Header with Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-cyan-900/50 pb-3 gap-3">
         <div className="flex items-center gap-2.5">
           <LottieAnimation type="arcade" className="w-8 h-8 shrink-0" />
@@ -210,51 +136,15 @@ export function CanvasStage({
               <span>Canvas Stage</span>
               <span className="text-xs text-amber-400 font-mono">[{title}]</span>
             </h3>
-            <span className="text-[11px] text-emerald-400 font-mono">
-              Engine: {engineMode === "gemma-canvas" ? "⚡ Reanimated HTML5 Canvas (60 FPS)" : "🏺 Authentic Ruffle WASM Player"}
+            <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              ⚡ Reanimated HTML5 Canvas (60 FPS Pure Web Standards)
             </span>
           </div>
         </div>
 
-        {/* Dual Engine Switcher & Controls */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Engine Selector Toggle */}
-          <div className="flex items-center rounded-lg bg-slate-900/90 p-1 border border-cyan-900/70 text-xs font-mono">
-            <button
-              onClick={() => {
-                playBlip();
-                setEngineMode("gemma-canvas");
-              }}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
-                engineMode === "gemma-canvas"
-                  ? "bg-amber-500 text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-white"
-              }`}
-              title="Play Gemma's re-architected modern HTML5 Canvas JavaScript loop"
-            >
-              <Cpu className="h-3.5 w-3.5" />
-              <span>HTML5 Canvas</span>
-            </button>
-
-            {swfData && (
-              <button
-                onClick={() => {
-                  playBlip();
-                  setEngineMode("ruffle-wasm");
-                }}
-                className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
-                  engineMode === "ruffle-wasm"
-                    ? "bg-emerald-500 text-slate-950 shadow-md"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Play original Flash vectors via Ruffle WebAssembly"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Ruffle WASM</span>
-              </button>
-            )}
-          </div>
-
           <button
             onClick={() => setEnableCrt(!enableCrt)}
             className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-colors ${
@@ -309,40 +199,25 @@ export function CanvasStage({
         </div>
       )}
 
-      {/* The Screen / Canvas Housing */}
+      {/* The Screen / Sandboxed Canvas Housing */}
       <div
         className={`relative mt-4 flex min-h-[380px] w-full items-center justify-center overflow-hidden rounded-xl border-4 border-slate-800 bg-black crt-curve ${
           enableCrt ? "crt-overlay" : ""
         }`}
       >
-        {/* Engine A: Gemma AI HTML5 Sandboxed Canvas (Default & Primary) */}
-        <div
-          className={`w-full h-[400px] flex items-center justify-center ${
-            engineMode === "gemma-canvas" ? "block" : "hidden"
-          }`}
-        >
-          <iframe
-            key={`canvas-frame-${restartNonce}-${title}`}
-            ref={iframeRef}
-            srcDoc={iframeSrcDoc}
-            sandbox="allow-scripts"
-            title={`Playable Canvas Stage - ${title}`}
-            className="w-full h-full border-none block bg-black"
-          />
-        </div>
-
-        {/* Engine B: Ruffle WebAssembly Native Flash Canvas (Optional Side-by-Side) */}
-        <div
-          ref={ruffleContainerRef}
-          className={`w-full h-[400px] flex items-center justify-center ${
-            engineMode === "ruffle-wasm" ? "block" : "hidden"
-          }`}
+        <iframe
+          key={`canvas-frame-${restartNonce}-${title}`}
+          ref={iframeRef}
+          srcDoc={iframeSrcDoc}
+          sandbox="allow-scripts"
+          title={`Playable Canvas Stage - ${title}`}
+          className="w-full h-[400px] border-none block bg-black"
         />
 
         {/* Live FPS / Specs Badge */}
         <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2 rounded bg-black/80 px-2 py-0.5 font-mono text-[10px] text-emerald-400 border border-emerald-900/60 z-30">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>{engineMode === "ruffle-wasm" ? "RUFFLE WASM" : "HTML5 CANVAS"}</span>
+          <span>HTML5 CANVAS</span>
           <span className="text-slate-500">|</span>
           <span>60 FPS</span>
         </div>
@@ -365,7 +240,7 @@ export function CanvasStage({
         </div>
 
         <span className="text-[11px] font-mono text-slate-500">
-          Pure HTML5 Canvas • Zero Flash Plugin Required
+          Pure HTML5 Canvas • Zero Flash Plugin Required • 100% Web Standards
         </span>
       </div>
     </div>

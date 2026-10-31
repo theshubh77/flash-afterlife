@@ -19,8 +19,7 @@ export default function Home() {
   const [activePreset, setActivePreset] = useState<FlashPreset>(FLASH_PRESETS[0]);
   const [isUploadMode, setIsUploadMode] = useState<boolean>(false);
 
-  // Canvas State & SWF Binary Buffer for Live Ruffle WASM Execution
-  const [currentSwfData, setCurrentSwfData] = useState<ArrayBuffer | null>(null);
+  // Canvas State & Generated ECMAScript Game Loop
   const [currentGameCode, setCurrentGameCode] = useState<string>(FLASH_PRESETS[0].defaultJsCode);
   const [currentTitle, setCurrentTitle] = useState<string>(FLASH_PRESETS[0].title);
   const [currentYear, setCurrentYear] = useState<number>(FLASH_PRESETS[0].year);
@@ -45,7 +44,6 @@ export default function Home() {
   const handleSelectPreset = (preset: FlashPreset) => {
     setActivePreset(preset);
     setIsUploadMode(false);
-    setCurrentSwfData(null); // Clear raw SWF so canvas uses the preset's rich Canvas engine
     setCurrentGameCode(preset.defaultJsCode);
     setCurrentTitle(preset.title);
     setCurrentYear(preset.year);
@@ -66,14 +64,10 @@ export default function Home() {
   const handleBytecodeExtracted = async (
     extractedAs2: string,
     metadata: SwfMetadata,
-    filename: string,
-    rawBuffer: ArrayBuffer
+    filename: string
   ) => {
     setIsProcessing(true);
     setAs2Code(extractedAs2);
-
-    // Immediately pass the raw SWF buffer to the Canvas Stage for 100% reliable execution via Ruffle WASM!
-    setCurrentSwfData(rawBuffer);
 
     try {
       const cleanTitle = filename.replace(/\.swf$/i, "");
@@ -149,7 +143,6 @@ export default function Home() {
           <div className="lg:col-span-7 space-y-4">
             <CanvasStage
               gameCode={currentGameCode}
-              swfData={currentSwfData}
               title={currentTitle}
               controls={currentControls}
               cemeteryKeeperMessage={cemeteryKeeperMessage}
@@ -166,7 +159,7 @@ export default function Home() {
                     SWF-TO-CANVAS PIPELINE: ACTIVE
                   </span>
                   <p className="text-[11px] text-slate-400">
-                    Dual-Engine: Ruffle WebAssembly + Gemma-4 Open-Weights
+                    Gemma-4 Open-Weights + Mastra Agent AST Normalization
                   </p>
                 </div>
               </div>
@@ -226,7 +219,7 @@ export default function Home() {
             <span>•</span>
             <span className="text-cyan-400">Mastra Agents</span>
             <span>•</span>
-            <span className="text-emerald-400">Ruffle WASM Canvas</span>
+            <span className="text-emerald-400">Pure HTML5 Canvas</span>
           </div>
 
           <div>

@@ -46,7 +46,7 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
               Adobe pulled the plug in 2020, entombing 20 years of indie web games.
               Using <span className="font-semibold text-amber-300">Gemma-4</span> open-weights,{" "}
               <span className="font-semibold text-cyan-300">Mastra</span> agent workflows, and native{" "}
-              <span className="font-semibold text-emerald-300">Ruffle WASM</span>, we resurrect
+              <span className="font-semibold text-emerald-300">Client-Side SWF Decompilation</span>, we resurrect
               vintage <code className="rounded bg-black/40 px-1 text-amber-300">.SWF</code> games directly onto HTML5 Canvas in candlelight.
             </p>
           </div>
