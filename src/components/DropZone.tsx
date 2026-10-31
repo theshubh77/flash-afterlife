@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { extractSwfBytecode, SwfMetadata } from "@/lib/swf/parser";
-import { UploadCloud, FileCode2, CheckCircle2, AlertCircle, Sparkles, Terminal } from "lucide-react";
+import { UploadCloud, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { playBlip, playReanimationChime } from "@/lib/audio/retroSynth";
 import { LottieAnimation } from "./LottieAnimation";
 
@@ -90,21 +90,24 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
   };
 
   return (
-    <div className="w-full rounded-2xl border-2 border-emerald-500/40 bg-[#061e22]/90 p-6 shadow-2xl backdrop-blur-md">
-      <div className="flex items-center justify-between border-b border-emerald-900/40 pb-3">
+    <div className="w-full rounded-2xl glass-panel-emerald p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+      {/* Subtle ambient light */}
+      <div className="pointer-events-none absolute -bottom-16 -right-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
+
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <div className="flex items-center gap-2.5">
           <UploadCloud className="h-5 w-5 text-emerald-400" />
           <h3 className="font-bold text-white text-base uppercase tracking-wider">
             SWF-to-Canvas Reanimation Altar
           </h3>
         </div>
-        <span className="rounded bg-emerald-950 px-2.5 py-0.5 text-[11px] font-mono font-bold text-emerald-300 border border-emerald-800">
-          Native SWF Decompiler + Gemma-4 AI Canvas
+        <span className="rounded-full glass-pill px-3 py-1 text-[11px] font-mono font-bold text-emerald-300">
+          In-Browser Decompressor + Gemma-4 AI
         </span>
       </div>
 
-      <p className="mt-2 text-xs text-slate-300">
-        Drop any vintage <code className="text-emerald-400 font-mono">.swf</code> file. The client decompressor streams the CWS/FWS bytes, scrapes Tag 12 (<span className="text-amber-300">DoAction</span>) & Tag 59 (<span className="text-amber-300">DoInitAction</span>), and triggers Gemma-4 via Mastra to synthesize a 60 FPS HTML5 Canvas game!
+      <p className="mt-2 text-xs text-slate-300/80 leading-relaxed">
+        Drop any vintage <code className="glass-pill px-1.5 py-0.5 text-emerald-300 font-mono rounded">.swf</code> binary. The in-browser WebAssembly decompressor streams the CWS/FWS bytes, scrapes ActionScript tags, and triggers Gemma-4 via Mastra to synthesize a 60 FPS HTML5 Canvas game.
       </p>
 
       {/* Drag & Drop Target Area */}
@@ -116,10 +119,10 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`mt-4 flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 cursor-pointer transition-all ${
+        className={`mt-4 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 cursor-pointer transition-all duration-300 ${
           isDragging
-            ? "border-emerald-400 bg-emerald-900/30 scale-[1.01]"
-            : "border-emerald-600/50 bg-[#041417]/80 hover:border-emerald-400 hover:bg-[#072429]"
+            ? "border-emerald-400 bg-emerald-500/15 scale-[1.01] shadow-[0_0_30px_rgba(16,185,129,0.25)]"
+            : "border-white/15 bg-black/20 hover:border-emerald-400/50 hover:bg-emerald-500/[0.04]"
         }`}
       >
         <input
@@ -136,29 +139,29 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
 
         {extracting || isProcessing ? (
           <div className="flex flex-col items-center gap-3">
-            <LottieAnimation type="portal" className="w-20 h-20" />
+            <LottieAnimation type="portal" className="w-18 h-18" />
             <p className="text-sm font-bold text-emerald-300 animate-pulse text-center">
-              {extracting ? "Decompressing CWS zlib stream & scraping ActionScript tags..." : "Gemma AI Transpilation & HTML5 Canvas Reanimation in progress..."}
+              {extracting ? "Decompressing CWS zlib stream & scraping ActionScript..." : "Gemma AI Transpilation & HTML5 Canvas Reanimation in progress..."}
             </p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-center">
-            <LottieAnimation type="ghost" className="w-16 h-16" />
-            <p className="text-sm font-bold text-slate-200">
-              Drop your vintage <span className="text-emerald-400 font-mono">.swf</span> binary here, or click to browse
+            <LottieAnimation type="ghost" className="w-14 h-14" />
+            <p className="text-sm font-bold text-slate-100">
+              Drop your vintage <span className="text-emerald-300 font-mono">.swf</span> binary here, or click to browse
             </p>
             <p className="text-xs text-slate-400">
-              Direct In-Browser Bytecode Extraction • Reanimated on HTML5 Canvas
+              Direct In-Browser Bytecode Extraction • 60 FPS HTML5 Canvas
             </p>
           </div>
         )}
       </div>
 
       {/* Quick Test Sample SWFs Bar */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-emerald-950/70">
-        <span className="text-xs font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
+        <span className="text-xs font-mono text-emerald-300 font-medium flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-          Or test immediately with vintage .SWF binaries:
+          Or test instantly with vintage .SWF samples:
         </span>
         <div className="flex flex-wrap gap-2">
           <button
@@ -167,7 +170,7 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
               e.stopPropagation();
               loadSampleSwf("/sample-swfs/vintage_copter_2004.swf", "copter_2004.swf");
             }}
-            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+            className="rounded-full glass-pill px-3 py-1 text-xs font-mono text-slate-300 hover:text-white hover:border-emerald-400 hover:bg-emerald-500/10 transition-colors"
           >
             🚁 copter_2004.swf
           </button>
@@ -177,7 +180,7 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
               e.stopPropagation();
               loadSampleSwf("/sample-swfs/arcade_tank_assault.swf", "tank_blaster.swf");
             }}
-            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+            className="rounded-full glass-pill px-3 py-1 text-xs font-mono text-slate-300 hover:text-white hover:border-emerald-400 hover:bg-emerald-500/10 transition-colors"
           >
             🚀 tank_blaster.swf
           </button>
@@ -187,7 +190,7 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
               e.stopPropagation();
               loadSampleSwf("/sample-swfs/bouncing_elastic_ball.swf", "elastic_ball.swf");
             }}
-            className="rounded-lg bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-700/60 px-3 py-1.5 text-xs font-mono text-emerald-200 hover:text-white transition-colors"
+            className="rounded-full glass-pill px-3 py-1 text-xs font-mono text-slate-300 hover:text-white hover:border-emerald-400 hover:bg-emerald-500/10 transition-colors"
           >
             ⚪ elastic_ball.swf
           </button>
@@ -196,7 +199,7 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
 
       {/* Error Message */}
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-950/80 border border-red-800 p-3 text-xs text-red-200">
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-200 backdrop-blur-md">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
           <span>{error}</span>
         </div>
@@ -204,32 +207,32 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
 
       {/* Extracted Metadata Card */}
       {extractedMetadata && (
-        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-[#021013] p-4 font-mono text-xs text-slate-300">
-          <div className="flex items-center justify-between border-b border-emerald-950 pb-2 mb-2">
+        <div className="mt-4 rounded-xl glass-card p-4 font-mono text-xs text-slate-300">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
             <span className="flex items-center gap-1.5 font-bold text-emerald-400">
               <CheckCircle2 className="h-4 w-4" /> SWF Forensics: {currentFile}
             </span>
-            <span className="text-amber-400">
+            <span className="text-amber-400 font-medium">
               Format: {extractedMetadata.signature} (v{extractedMetadata.version})
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-400">
             <div>
-              <span className="text-slate-500">Canvas Dimensions:</span>{" "}
+              <span className="text-slate-500">Dimensions:</span>{" "}
               <span className="text-white">{extractedMetadata.width} x {extractedMetadata.height} px</span>
             </div>
             <div>
-              <span className="text-slate-500">Native FPS:</span>{" "}
-              <span className="text-white">{extractedMetadata.fps} FPS</span>
+              <span className="text-slate-500">FPS:</span>{" "}
+              <span className="text-white">{extractedMetadata.fps}</span>
             </div>
             <div>
-              <span className="text-slate-500">Total Tags:</span>{" "}
+              <span className="text-slate-500">Tags:</span>{" "}
               <span className="text-white">{extractedMetadata.tagCount}</span>
             </div>
             <div>
               <span className="text-slate-500">ActionScript Tags:</span>{" "}
-              <span className="text-emerald-300">{extractedMetadata.actionScriptTagsFound}</span>
+              <span className="text-emerald-300 font-bold">{extractedMetadata.actionScriptTagsFound}</span>
             </div>
           </div>
 
@@ -237,17 +240,17 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
             <div className="mt-3">
               <span className="text-slate-500 text-[10px]">RECOVERED BYTECODE SYMBOLS:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {extractedMetadata.extractedSymbols.slice(0, 12).map((sym, i) => (
+                {extractedMetadata.extractedSymbols.slice(0, 10).map((sym, i) => (
                   <span
                     key={i}
-                    className="rounded bg-emerald-950 px-1.5 py-0.5 text-[10px] text-emerald-300 border border-emerald-800/60"
+                    className="rounded-full glass-pill px-2 py-0.5 text-[10px] text-emerald-300"
                   >
                     {sym}
                   </span>
                 ))}
-                {extractedMetadata.extractedSymbols.length > 12 && (
+                {extractedMetadata.extractedSymbols.length > 10 && (
                   <span className="text-[10px] text-slate-500 self-center">
-                    +{extractedMetadata.extractedSymbols.length - 12} more
+                    +{extractedMetadata.extractedSymbols.length - 10} more
                   </span>
                 )}
               </div>

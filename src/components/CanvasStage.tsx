@@ -52,8 +52,6 @@ export function CanvasStage({
 
     const win = window as unknown as { RufflePlayer?: RuffleGlobal };
 
-    // Explicitly configure Ruffle BEFORE loading the script!
-    // This tells Webpack exactly where all sub-chunks (chunk 110) and WASM binaries live, preventing 404/ChunkLoadErrors!
     win.RufflePlayer = win.RufflePlayer || {};
     win.RufflePlayer.config = {
       publicPath: "https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@0.7.1/",
@@ -78,9 +76,7 @@ export function CanvasStage({
     script.src = "https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@0.7.1/ruffle.js";
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.onload = () => {
-      setIsRuffleLoaded(true);
-    };
+    script.onload = () => setIsRuffleLoaded(true);
     script.onerror = () => {
       console.warn("Ruffle CDN was blocked or unavailable. Gemma HTML5 Canvas is active.");
       setRuffleError("Ruffle CDN was blocked by network/adblocker.");
@@ -92,9 +88,7 @@ export function CanvasStage({
   useEffect(() => {
     if (engineMode !== "ruffle-wasm" || !ruffleContainerRef.current) return;
 
-    if (!swfData) {
-      return;
-    }
+    if (!swfData) return;
 
     const win = window as unknown as {
       RufflePlayer?: {
@@ -239,36 +233,36 @@ export function CanvasStage({
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col rounded-2xl border-2 border-cyan-800/80 bg-[#040f17] p-5 shadow-2xl"
+      className="relative flex flex-col rounded-3xl glass-panel-glow p-5 sm:p-6 shadow-2xl backdrop-blur-2xl"
     >
-      {/* Stage Header with Dual-Engine Switcher & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-cyan-900/50 pb-3 gap-3">
+      {/* Top Dock Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3.5 gap-3">
         <div className="flex items-center gap-2.5">
           <LottieAnimation type="arcade" className="w-8 h-8 shrink-0" />
           <div>
             <h3 className="font-black text-white text-base uppercase tracking-wider flex items-center gap-2">
               <span>Canvas Stage</span>
-              <span className="text-xs text-amber-400 font-mono">[{title}]</span>
+              <span className="text-xs text-amber-300 font-mono">[{title}]</span>
             </h3>
             <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              Engine: {engineMode === "gemma-canvas" ? "⚡ Reanimated HTML5 Canvas (60 FPS Pure Web Standards)" : "🏺 Authentic Ruffle WASM Player"}
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Engine: {engineMode === "gemma-canvas" ? "⚡ Reanimated HTML5 Canvas (60 FPS)" : "🏺 Authentic Ruffle WASM"}
             </span>
           </div>
         </div>
 
-        {/* Dual Engine Selector & Action Buttons */}
+        {/* Dual Engine Switcher & Controls Dock */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Engine Selector */}
-          <div className="flex items-center rounded-lg bg-slate-900/90 p-1 border border-cyan-900/70 text-xs font-mono">
+          {/* Engine Selector Toggle */}
+          <div className="flex items-center rounded-xl glass-pill p-1 text-xs font-mono">
             <button
               onClick={() => {
                 playBlip();
                 setEngineMode("gemma-canvas");
               }}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-bold transition-all ${
                 engineMode === "gemma-canvas"
-                  ? "bg-amber-500 text-slate-950 shadow-md"
+                  ? "gold-glow-btn text-slate-950 shadow-md font-black"
                   : "text-slate-400 hover:text-white"
               }`}
               title="Play Gemma's re-architected modern HTML5 Canvas JavaScript loop"
@@ -282,9 +276,9 @@ export function CanvasStage({
                 playBlip();
                 setEngineMode("ruffle-wasm");
               }}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-bold transition-all ${
                 engineMode === "ruffle-wasm"
-                  ? "bg-emerald-500 text-slate-950 shadow-md"
+                  ? "bg-emerald-500 text-slate-950 shadow-md font-black"
                   : "text-slate-400 hover:text-white"
               }`}
               title="Play original Flash vectors via Ruffle WebAssembly"
@@ -296,10 +290,10 @@ export function CanvasStage({
 
           <button
             onClick={() => setEnableCrt(!enableCrt)}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-colors ${
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold transition-all ${
               enableCrt
-                ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
-                : "bg-slate-900 text-slate-400 border border-slate-700 hover:text-white"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                : "glass-pill text-slate-400 hover:text-white"
             }`}
             title="Toggle authentic 2004 CRT scanline filter"
           >
@@ -309,7 +303,7 @@ export function CanvasStage({
 
           <button
             onClick={restartGame}
-            className="flex items-center gap-1.5 rounded-lg bg-cyan-950 px-2.5 py-1 text-xs font-mono font-bold text-cyan-300 border border-cyan-700 hover:bg-cyan-900 transition-colors"
+            className="glass-btn flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-cyan-300 hover:text-white"
             title="Restart Game Loop"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -318,7 +312,7 @@ export function CanvasStage({
 
           <button
             onClick={onOpenCodeSeance}
-            className="flex items-center gap-1.5 rounded-lg bg-amber-950/70 px-2.5 py-1 text-xs font-mono font-bold text-amber-300 border border-amber-700 hover:bg-amber-900 transition-colors"
+            className="glass-btn flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-amber-300 hover:text-amber-200"
             title="Inspect ActionScript vs Canvas Code Séance"
           >
             <Terminal className="h-3.5 w-3.5" />
@@ -327,7 +321,7 @@ export function CanvasStage({
 
           <button
             onClick={toggleFullscreen}
-            className="flex items-center justify-center rounded-lg bg-slate-900 p-1.5 text-slate-400 border border-slate-700 hover:text-white transition-colors"
+            className="glass-btn flex items-center justify-center rounded-xl p-2 text-slate-400 hover:text-white"
             title="Fullscreen"
           >
             <Maximize2 className="h-3.5 w-3.5" />
@@ -337,20 +331,20 @@ export function CanvasStage({
 
       {/* Cemetery Keeper Lore Banner if Fallback Active */}
       {cemeteryKeeperMessage && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-amber-600/50 bg-amber-950/40 p-3 text-xs text-amber-200">
+        <div className="mt-3 flex items-start gap-2.5 rounded-2xl glass-card bg-amber-500/[0.08] border-amber-500/30 p-3.5 text-xs text-amber-200">
           <LottieAnimation type="skull" className="w-6 h-6 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold uppercase tracking-wider text-amber-300">
               The Cemetery Keeper Speaks:
             </span>
-            <p className="mt-0.5 text-amber-200/90">{cemeteryKeeperMessage}</p>
+            <p className="mt-0.5 text-amber-200/90 leading-relaxed">{cemeteryKeeperMessage}</p>
           </div>
         </div>
       )}
 
       {/* The Screen / Sandboxed Canvas Housing */}
       <div
-        className={`relative mt-4 flex min-h-[380px] w-full items-center justify-center overflow-hidden rounded-xl border-4 border-slate-800 bg-black crt-curve ${
+        className={`relative mt-4 flex min-h-[380px] w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black crt-curve shadow-[0_0_40px_rgba(0,0,0,0.8)] ${
           enableCrt ? "crt-overlay" : ""
         }`}
       >
@@ -379,14 +373,14 @@ export function CanvasStage({
           <div ref={ruffleContainerRef} className="w-full h-full flex items-center justify-center" />
 
           {(!swfData || ruffleError) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#051119]/90 p-6 text-center text-xs text-slate-300">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#051119]/90 backdrop-blur-md p-6 text-center text-xs text-slate-300">
               <LottieAnimation type="portal" className="w-16 h-16 mb-2" />
               <p className="font-bold text-amber-300 text-sm">
-                {ruffleError || "Drop a .SWF binary or select an Almanac preset to load raw vector binary."}
+                {ruffleError || "Drop a .SWF binary or select an Almanac preset to load the raw vector binary."}
               </p>
               <button
                 onClick={() => setEngineMode("gemma-canvas")}
-                className="mt-3 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                className="mt-3 rounded-xl gold-glow-btn px-4 py-2 text-xs font-black text-slate-950"
               >
                 Switch to Gemma HTML5 Canvas
               </button>
@@ -395,16 +389,16 @@ export function CanvasStage({
         </div>
 
         {/* Live FPS / Specs Badge */}
-        <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2 rounded bg-black/80 px-2 py-0.5 font-mono text-[10px] text-emerald-400 border border-emerald-900/60 z-30">
+        <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2 rounded-full glass-pill px-3 py-1 font-mono text-[10px] text-emerald-400 z-30">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span>{engineMode === "ruffle-wasm" ? "RUFFLE WASM" : "HTML5 CANVAS"}</span>
-          <span className="text-slate-500">|</span>
+          <span className="text-white/20">|</span>
           <span>60 FPS</span>
         </div>
       </div>
 
       {/* Controls Cheat-Sheet HUD */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-950/70 p-3 border border-cyan-950 text-xs">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl glass-pill p-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono font-bold text-amber-300 uppercase tracking-wider text-[11px]">
             Controls:
@@ -412,15 +406,15 @@ export function CanvasStage({
           {controls.map((ctrl, i) => (
             <span
               key={i}
-              className="rounded bg-cyan-950/80 px-2 py-0.5 font-mono text-cyan-200 border border-cyan-800/50 text-[11px]"
+              className="rounded-lg glass-pill px-2.5 py-1 font-mono text-cyan-200 text-[11px]"
             >
               {ctrl}
             </span>
           ))}
         </div>
 
-        <span className="text-[11px] font-mono text-slate-500">
-          Dual-Engine: Pure HTML5 Canvas + Ruffle WASM Vectors
+        <span className="text-[11px] font-mono text-slate-400">
+          Pure HTML5 Canvas • Zero Plugins Required
         </span>
       </div>
     </div>

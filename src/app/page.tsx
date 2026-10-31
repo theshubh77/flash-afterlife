@@ -11,8 +11,8 @@ import { WhyOpenSourceManifesto } from "@/components/WhyOpenSourceManifesto";
 import { FLASH_PRESETS, FlashPreset } from "@/lib/presets/flashPresets";
 import { SwfMetadata } from "@/lib/swf/parser";
 import { NormalizedFlashAST } from "@/lib/mastra/tools/normalizeActionScript";
-import { playReanimationChime, playBlip } from "@/lib/audio/retroSynth";
-import { Terminal, Layers, Sparkles } from "lucide-react";
+import { playReanimationChime } from "@/lib/audio/retroSynth";
+import { Terminal } from "lucide-react";
 import { LottieAnimation } from "@/components/LottieAnimation";
 
 export default function Home() {
@@ -132,8 +132,13 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen graveyard-bg flex flex-col text-slate-100 selection:bg-amber-500 selection:text-black">
-      {/* Top Atmospheric Header with Lottie Ghost */}
+    <div className="min-h-screen bg-[#04090e] flex flex-col text-slate-100 selection:bg-amber-400 selection:text-black relative overflow-x-hidden">
+      {/* Ambient Lighting Background Spheres for Glassmorphism */}
+      <div className="pointer-events-none fixed top-20 left-10 h-[450px] w-[450px] rounded-full bg-cyan-600/[0.07] blur-[130px] -z-10" />
+      <div className="pointer-events-none fixed top-40 right-10 h-[500px] w-[500px] rounded-full bg-amber-500/[0.07] blur-[140px] -z-10" />
+      <div className="pointer-events-none fixed bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-emerald-600/[0.05] blur-[150px] -z-10" />
+
+      {/* Top Atmospheric Header */}
       <Header
         onOpenManifesto={() => setIsManifestoOpen(true)}
         onOpenSeance={() => setIsSeanceOpen(true)}
@@ -172,7 +177,7 @@ export default function Home() {
             />
 
             {/* Quick Action Bar under Canvas */}
-            <div className="flex items-center justify-between rounded-xl bg-[#061722]/80 border border-cyan-900/60 p-4 text-xs">
+            <div className="flex items-center justify-between rounded-2xl glass-panel p-4 text-xs">
               <div className="flex items-center gap-2.5">
                 <LottieAnimation type="portal" className="w-6 h-6 shrink-0" />
                 <div>
@@ -180,7 +185,7 @@ export default function Home() {
                     SWF-TO-CANVAS PIPELINE: ACTIVE
                   </span>
                   <p className="text-[11px] text-slate-400">
-                    Gemma-4 Open-Weights + Mastra Agent AST Normalization
+                    Dual-Engine: Pure HTML5 Canvas + Ruffle WASM Vectors
                   </p>
                 </div>
               </div>
@@ -188,7 +193,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsSeanceOpen(true)}
-                  className="flash-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase tracking-wider"
+                  className="glass-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-cyan-200 uppercase tracking-wider hover:text-white"
                 >
                   <Terminal className="h-3.5 w-3.5" />
                   <span>Inspect Bytecode</span>
@@ -231,19 +236,19 @@ export default function Home() {
       />
 
       {/* Footer */}
-      <footer className="mt-12 border-t border-cyan-950 bg-[#030a10] py-6 text-center text-xs text-slate-500 font-mono">
+      <footer className="mt-12 border-t border-white/10 glass-panel py-6 text-center text-xs text-slate-400 font-mono">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span>🪦 FlashAfterlife</span>
-            <span>•</span>
-            <span className="text-amber-400">Gemma-4-26B</span>
-            <span>•</span>
-            <span className="text-cyan-400">Mastra Agents</span>
-            <span>•</span>
-            <span className="text-emerald-400">Pure HTML5 Canvas</span>
+            <span className="text-white/20">•</span>
+            <span className="text-amber-300">Gemma-4-26B</span>
+            <span className="text-white/20">•</span>
+            <span className="text-cyan-300">Mastra Agents</span>
+            <span className="text-white/20">•</span>
+            <span className="text-emerald-300">HTML5 Canvas</span>
           </div>
 
-          <div>
+          <div className="text-slate-400">
             Built with 🕯️ for the Hacktoberfest 2026 Open-Source AI Challenge
           </div>
         </div>

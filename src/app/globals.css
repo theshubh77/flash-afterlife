@@ -2,19 +2,128 @@
 
 @layer base {
   :root {
-    --bg-dark: #07131d;
+    --bg-dark: #050b12;
     --ofrenda-gold: #f59e0b;
     --ofrenda-marigold: #ea580c;
     --ectoplasm: #10b981;
-    --graveyard-teal: #0c2d3d;
+    --graveyard-teal: #08212e;
   }
 
   body {
-    background-color: #050d14;
+    background-color: #04090e;
     color: #e2e8f0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     overflow-x: hidden;
   }
+}
+
+/* =========================================================
+   GLASSMORPHISM CORE STYLING
+   ========================================================= */
+.glass-panel {
+  background: rgba(8, 18, 28, 0.58);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-glow {
+  background: rgba(9, 23, 35, 0.68);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-panel-gold {
+  background: rgba(22, 14, 4, 0.68);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 158, 11, 0.12), inset 0 1px 0 rgba(254, 240, 138, 0.15);
+}
+
+.glass-panel-emerald {
+  background: rgba(5, 22, 18, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(167, 243, 208, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.55);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-btn {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.glass-btn:active {
+  transform: translateY(0);
+}
+
+/* Gold Flame Glow Button */
+.gold-glow-btn {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.85) 0%, rgba(217, 119, 6, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(254, 240, 138, 0.5);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.gold-glow-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Cyan Glow Button */
+.cyan-glow-btn {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.85) 0%, rgba(2, 132, 199, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(186, 230, 253, 0.5);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.cyan-glow-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 /* =========================================================
@@ -64,7 +173,7 @@
 }
 
 .crt-curve {
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.15);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.12);
 }
 
 /* =========================================================
@@ -90,65 +199,24 @@
   );
 }
 
-/* =========================================================
-   RETRO FLASH EMBOSSED BUTTONS & CARD GLOWS
-   ========================================================= */
-.flash-btn {
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 60%, #0369a1 100%);
-  border: 2px solid #7dd3fc;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 6px rgba(0, 0, 0, 0.5);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-  transition: all 0.15s ease-in-out;
-}
-
-.flash-btn:hover {
-  filter: brightness(1.15);
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 5px 12px rgba(2, 132, 199, 0.4);
-}
-
-.flash-btn:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.gold-flame-btn {
-  background: linear-gradient(180deg, #facc15 0%, #f59e0b 60%, #d97706 100%);
-  border: 2px solid #fef08a;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 10px rgba(245, 158, 11, 0.4);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-.gold-flame-btn:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 6px 14px rgba(245, 158, 11, 0.6);
-}
-
-/* =========================================================
-   SPOOKY GRAVEYARD ATMOSPHERE (AMO'S HALLOWEEN INSPIRED)
-   ========================================================= */
-.graveyard-bg {
-  background: radial-gradient(circle at 50% 15%, #0f3d4c 0%, #081e28 40%, #051016 100%);
-}
-
+/* Moon Glow */
 .moon-glow {
   background: radial-gradient(circle, #fef08a 0%, #fde047 35%, #ca8a04 70%, transparent 100%);
-  box-shadow: 0 0 50px rgba(253, 224, 71, 0.45), 0 0 100px rgba(250, 204, 21, 0.25);
+  box-shadow: 0 0 60px rgba(253, 224, 71, 0.4), 0 0 120px rgba(250, 204, 21, 0.2);
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #07131d;
+  background: rgba(5, 11, 18, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b;
+  background: rgba(245, 158, 11, 0.6);
 }
