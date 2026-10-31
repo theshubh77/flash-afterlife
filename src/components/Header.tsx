@@ -76,7 +76,7 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
                 <Cpu className="h-3 w-3 text-cyan-400" /> Mastra Agents
               </span>
               <span className="inline-flex items-center gap-1 rounded bg-slate-900/90 px-2 py-0.5 border border-amber-800/60 text-amber-300">
-                <Sparkles className="h-3 w-3 text-amber-400" /> Gemma-3-27B
+                <Sparkles className="h-3 w-3 text-amber-400" /> Gemma Open-Weights
               </span>
               <span className="inline-flex items-center gap-1 rounded bg-slate-900/90 px-2 py-0.5 border border-emerald-800/60 text-emerald-300">
                 <Cloud className="h-3 w-3 text-emerald-400" /> Render Runtime

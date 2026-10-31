@@ -12,6 +12,6 @@ services:
       - key: GEMMA_API_KEY
         sync: false
       - key: GEMMA_MODEL_NAME
-        value: gemini-2.5-flash
+        value: gemma-2-27b-it
       - key: SERPAPI_API_KEY
         sync: false

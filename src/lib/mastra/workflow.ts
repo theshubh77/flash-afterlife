@@ -87,7 +87,7 @@ export async function executeMastraReanimation(
     let calaveritaEnglish = "";
     let calaveritaSpanish = "";
     let generatedControls: string[] = [];
-    let modelUsed = "gemma-3-27b-it (Google AI Studio)";
+    let modelUsed = "gemma-2-27b-it (Google AI Studio)";
     let isFallback = false;
     let cemeteryKeeperMessage: string | undefined = undefined;
 
@@ -100,7 +100,7 @@ export async function executeMastraReanimation(
       try {
         const ai = new GoogleGenAI({ apiKey });
 
-        // Compact, high-efficiency prompt to minimize token consumption
+        // Compact, high-efficiency prompt to minimize token consumption for Gemma open weights
         const prompt = `You are The Code Necromancer for FlashAfterlife, an open-source AI agent reviving dead 2000s Adobe Flash ActionScript 2.0 games for the Día de los Muertos preservation altar.
 
 Game Title: ${title} (${finalYear})
@@ -137,12 +137,23 @@ Respond ONLY with valid JSON in this exact structure:
   "controls": ["Spacebar: Fly Up / Action", "Arrow Keys / Mouse: Move"]
 }`;
 
-        // Call Google AI (supports gemma-3-27b-it or gemini-2.5-flash on free tier)
-        const modelTarget = process.env.GEMMA_MODEL_NAME || "gemini-2.5-flash";
-        const response = await ai.models.generateContent({
-          model: modelTarget,
-          contents: prompt,
-        });
+        // Call Google Gemma open-weight models (defaults to gemma-2-27b-it, with gemma-2-9b-it backup)
+        const primaryModel = process.env.GEMMA_MODEL_NAME || "gemma-2-27b-it";
+        let response;
+        try {
+          response = await ai.models.generateContent({
+            model: primaryModel,
+            contents: prompt,
+          });
+          modelUsed = `Gemma Open-Weight (${primaryModel})`;
+        } catch (firstTryErr) {
+          console.warn(`Primary Gemma model (${primaryModel}) hit rate limit, trying gemma-2-9b-it fallback:`, firstTryErr);
+          response = await ai.models.generateContent({
+            model: "gemma-2-9b-it",
+            contents: prompt,
+          });
+          modelUsed = "Gemma Open-Weight (gemma-2-9b-it)";
+        }
 
         const rawText = response.text || "";
         const cleanJsonText = rawText
@@ -158,12 +169,11 @@ Respond ONLY with valid JSON in this exact structure:
           if (Array.isArray(parsed.controls)) {
             generatedControls = parsed.controls;
           }
-          modelUsed = `${modelTarget} (Live Google AI Studio API)`;
         } else {
           isFallback = true;
         }
       } catch (geminiError: unknown) {
-        console.warn("Google AI invocation hit quota or error. Activating Cemetery Keeper.", geminiError);
+        console.warn("Gemma API invocation hit quota or network block. Activating Cemetery Keeper.", geminiError);
         isFallback = true;
       }
     } else {
