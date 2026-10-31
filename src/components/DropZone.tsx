@@ -10,7 +10,8 @@ interface DropZoneProps {
   onBytecodeExtracted: (
     actionScript: string,
     metadata: SwfMetadata,
-    filename: string
+    filename: string,
+    rawBuffer: ArrayBuffer
   ) => void;
   isProcessing: boolean;
 }
@@ -43,7 +44,8 @@ export function DropZone({ onBytecodeExtracted, isProcessing }: DropZoneProps) {
       onBytecodeExtracted(
         result.rawActionScript || result.metadata.reconstructedActionScript,
         result.metadata,
-        filename
+        filename,
+        arrayBuffer
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

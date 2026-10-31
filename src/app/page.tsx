@@ -20,6 +20,7 @@ export default function Home() {
   const [isUploadMode, setIsUploadMode] = useState<boolean>(false);
 
   // Canvas State & Generated ECMAScript Game Loop
+  const [currentSwfData, setCurrentSwfData] = useState<ArrayBuffer | null>(null);
   const [currentGameCode, setCurrentGameCode] = useState<string>(FLASH_PRESETS[0].defaultJsCode);
   const [currentTitle, setCurrentTitle] = useState<string>(FLASH_PRESETS[0].title);
   const [currentYear, setCurrentYear] = useState<number>(FLASH_PRESETS[0].year);
@@ -41,7 +42,7 @@ export default function Home() {
   const [isSeanceOpen, setIsSeanceOpen] = useState<boolean>(false);
 
   // Handle Preset Selection from Almanac
-  const handleSelectPreset = (preset: FlashPreset) => {
+  const handleSelectPreset = async (preset: FlashPreset) => {
     setActivePreset(preset);
     setIsUploadMode(false);
     setCurrentGameCode(preset.defaultJsCode);
@@ -58,16 +59,35 @@ export default function Home() {
     setIsFallback(false);
     setModelUsed("Gemma-4-26B via Mastra");
     playReanimationChime();
+
+    // Pre-load sample SWF buffer so Ruffle can play it if user toggles engine
+    try {
+      const swfMap: Record<string, string> = {
+        "helicopter-2004": "/sample-swfs/vintage_copter_2004.swf",
+        "tank-blaster": "/sample-swfs/arcade_tank_assault.swf",
+        "elastic-ball": "/sample-swfs/bouncing_elastic_ball.swf",
+      };
+      const swfUrl = swfMap[preset.id];
+      if (swfUrl) {
+        const res = await fetch(swfUrl);
+        const buf = await res.arrayBuffer();
+        setCurrentSwfData(buf);
+      }
+    } catch (_) {
+      // ignore
+    }
   };
 
   // Redesigned SWF-to-Canvas Reanimation Pipeline
   const handleBytecodeExtracted = async (
     extractedAs2: string,
     metadata: SwfMetadata,
-    filename: string
+    filename: string,
+    rawBuffer: ArrayBuffer
   ) => {
     setIsProcessing(true);
     setAs2Code(extractedAs2);
+    setCurrentSwfData(rawBuffer);
 
     try {
       const cleanTitle = filename.replace(/\.swf$/i, "");
@@ -143,6 +163,7 @@ export default function Home() {
           <div className="lg:col-span-7 space-y-4">
             <CanvasStage
               gameCode={currentGameCode}
+              swfData={currentSwfData}
               title={currentTitle}
               controls={currentControls}
               cemeteryKeeperMessage={cemeteryKeeperMessage}
