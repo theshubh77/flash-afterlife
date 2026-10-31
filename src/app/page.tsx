@@ -1,69 +1,221 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
+import { Header } from "@/components/Header";
+import { AlmanacSelector } from "@/components/AlmanacSelector";
+import { DropZone } from "@/components/DropZone";
+import { CanvasStage } from "@/components/CanvasStage";
+import { OfrendaAltar } from "@/components/OfrendaAltar";
+import { CodeSeanceModal } from "@/components/CodeSeanceModal";
+import { WhyOpenSourceManifesto } from "@/components/WhyOpenSourceManifesto";
+import { FLASH_PRESETS, FlashPreset } from "@/lib/presets/flashPresets";
+import { SwfMetadata } from "@/lib/swf/parser";
+import { NormalizedFlashAST } from "@/lib/mastra/tools/normalizeActionScript";
+import { playReanimationChime, playBlip } from "@/lib/audio/retroSynth";
+import { Flame, Sparkles, Terminal, BookOpen, ShieldCheck } from "lucide-react";
 
 export default function Home() {
+  const [activePreset, setActivePreset] = useState<FlashPreset>(FLASH_PRESETS[0]);
+  const [isUploadMode, setIsUploadMode] = useState<boolean>(false);
+
+  const [currentGameCode, setCurrentGameCode] = useState<string>(FLASH_PRESETS[0].defaultJsCode);
+  const [currentTitle, setCurrentTitle] = useState<string>(FLASH_PRESETS[0].title);
+  const [currentYear, setCurrentYear] = useState<number>(FLASH_PRESETS[0].year);
+  const [currentAuthor, setCurrentAuthor] = useState<string>(FLASH_PRESETS[0].author);
+  const [currentControls, setCurrentControls] = useState<string[]>(FLASH_PRESETS[0].controls);
+  const [currentCalaverita, setCurrentCalaverita] = useState(FLASH_PRESETS[0].calaverita);
+  const [currentEpitaph, setCurrentEpitaph] = useState<string>(FLASH_PRESETS[0].almanac.epitaph);
+  const [as2Code, setAs2Code] = useState<string>(FLASH_PRESETS[0].as2Code);
+
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [cemeteryKeeperMessage, setCemeteryKeeperMessage] = useState<string | undefined>(undefined);
+  const [isFallback, setIsFallback] = useState<boolean>(false);
+  const [normalizedAST, setNormalizedAST] = useState<NormalizedFlashAST | undefined>(undefined);
+  const [modelUsed, setModelUsed] = useState<string>("Gemma-3-27B via Mastra");
+
+  const [isManifestoOpen, setIsManifestoOpen] = useState<boolean>(false);
+  const [isSeanceOpen, setIsSeanceOpen] = useState<boolean>(false);
+
+  // Handle Preset Selection from Almanac
+  const handleSelectPreset = (preset: FlashPreset) => {
+    setActivePreset(preset);
+    setIsUploadMode(false);
+    setCurrentGameCode(preset.defaultJsCode);
+    setCurrentTitle(preset.title);
+    setCurrentYear(preset.year);
+    setCurrentAuthor(preset.author);
+    setCurrentControls(preset.controls);
+    setCurrentCalaverita(preset.calaverita);
+    setCurrentEpitaph(preset.almanac.epitaph);
+    setAs2Code(preset.as2Code);
+    setCemeteryKeeperMessage(undefined);
+    setIsFallback(false);
+    playReanimationChime();
+  };
+
+  // Handle Custom SWF Upload & Reanimation Pipeline
+  const handleBytecodeExtracted = async (
+    extractedAs2: string,
+    metadata: SwfMetadata,
+    filename: string
+  ) => {
+    setIsProcessing(true);
+    setAs2Code(extractedAs2);
+
+    try {
+      const cleanTitle = filename.replace(/\.swf$/i, "");
+      const res = await fetch("/api/reanimate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawActionScript: extractedAs2,
+          title: cleanTitle,
+          year: 2005,
+          extractedSymbols: metadata.extractedSymbols,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.gameCode) {
+        setCurrentGameCode(data.gameCode);
+        setCurrentTitle(data.title || cleanTitle);
+        setCurrentYear(data.year || 2005);
+        setCurrentAuthor("Recovered Bytecode Soul");
+        setCurrentControls(data.controls || ["Spacebar / Mouse: Interact", "Arrow Keys: Move"]);
+        setCurrentCalaverita(data.calaverita);
+        setCurrentEpitaph(`Preserved from ${filename} on the Flash Altar.`);
+        setCemeteryKeeperMessage(data.cemeteryKeeperMessage);
+        setIsFallback(data.isFallback);
+        setNormalizedAST(data.normalizedAST);
+        setModelUsed(data.modelUsed);
+        playReanimationChime();
+      }
+    } catch (err) {
+      console.error("Reanimation request error:", err);
+      // Graceful local fallback to preserve uninterrupted experience
+      setCurrentGameCode(activePreset.defaultJsCode);
+      setCemeteryKeeperMessage(
+        "The Cemetery Keeper channeled this classic temple while your binary spirit was resting."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen graveyard-bg flex flex-col text-slate-100 selection:bg-amber-500 selection:text-black">
+      {/* Top Atmospheric Header */}
+      <Header
+        onOpenManifesto={() => setIsManifestoOpen(true)}
+        onOpenSeance={() => setIsSeanceOpen(true)}
+      />
+
+      {/* Main Content Workspace */}
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+        {/* Almanac of the Departed / Preset Selection Codex */}
+        <AlmanacSelector
+          selectedPresetId={activePreset.id}
+          onSelectPreset={handleSelectPreset}
+          onSelectUploadMode={() => setIsUploadMode(!isUploadMode)}
+          isUploadMode={isUploadMode}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        {/* Custom SWF Upload Zone (revealed when user clicks Upload or toggles mode) */}
+        {isUploadMode && (
+          <DropZone
+            onBytecodeExtracted={handleBytecodeExtracted}
+            isProcessing={isProcessing}
+          />
+        )}
+
+        {/* The Two Main Pillars: Reanimated Canvas Stage & The Virtual Ofrenda */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Reanimated Canvas (7 Cols) */}
+          <div className="lg:col-span-7 space-y-4">
+            <CanvasStage
+              gameCode={currentGameCode}
+              title={currentTitle}
+              controls={currentControls}
+              cemeteryKeeperMessage={cemeteryKeeperMessage}
+              isFallback={isFallback}
+              onOpenCodeSeance={() => setIsSeanceOpen(true)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            {/* Quick Action Bar under Canvas */}
+            <div className="flex items-center justify-between rounded-xl bg-[#061722]/80 border border-cyan-900/60 p-4 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-xl select-none">🪦</span>
+                <div>
+                  <span className="font-bold text-white uppercase tracking-wider">
+                    Preservation Status: ACTIVE
+                  </span>
+                  <p className="text-[11px] text-slate-400">
+                    Engineered for Hacktoberfest 2026: Ghost in the Machine
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSeanceOpen(true)}
+                  className="flash-btn flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase tracking-wider"
+                >
+                  <Terminal className="h-3.5 w-3.5" />
+                  <span>Inspect Bytecode</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Virtual Ofrenda Altar (5 Cols) */}
+          <div className="lg:col-span-5">
+            <OfrendaAltar
+              title={currentTitle}
+              year={currentYear}
+              author={currentAuthor}
+              calaverita={currentCalaverita}
+              epitaph={currentEpitaph}
+            />
+          </div>
         </div>
       </main>
+
+      {/* Code Séance Modal */}
+      <CodeSeanceModal
+        isOpen={isSeanceOpen}
+        onClose={() => setIsSeanceOpen(false)}
+        title={currentTitle}
+        as2Code={as2Code}
+        reanimatedJs={currentGameCode}
+        normalizedAST={normalizedAST}
+        modelUsed={modelUsed}
+      />
+
+      {/* Why Open Source Manifesto Modal */}
+      <WhyOpenSourceManifesto
+        isOpen={isManifestoOpen}
+        onClose={() => setIsManifestoOpen(false)}
+      />
+
+      {/* Footer */}
+      <footer className="mt-12 border-t border-cyan-950 bg-[#030a10] py-6 text-center text-xs text-slate-500 font-mono">
+        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span>🪦 FlashAfterlife</span>
+            <span>•</span>
+            <span className="text-amber-400">Gemma-3-27B</span>
+            <span>•</span>
+            <span className="text-cyan-400">Mastra Agents</span>
+            <span>•</span>
+            <span className="text-emerald-400">Render Hosted</span>
+          </div>
+
+          <div>
+            Built with 🕯️ for the Hacktoberfest 2026 Open-Source AI Challenge
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
