@@ -7,3 +7,4 @@ export async function GET() {
     totalCount: FLASH_PRESETS.length,
   });
 }
+

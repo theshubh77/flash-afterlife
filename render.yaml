@@ -11,3 +11,7 @@ services:
         value: production
       - key: GEMMA_API_KEY
         sync: false
+      - key: GEMMA_MODEL_NAME
+        value: gemini-2.5-flash
+      - key: SERPAPI_API_KEY
+        sync: false

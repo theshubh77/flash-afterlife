@@ -358,3 +358,4 @@ export async function extractSwfBytecode(fileBuffer: ArrayBuffer): Promise<SwfEx
     };
   }
 }
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Flame, Sparkles, Volume2, Skull, Heart } from "lucide-react";
+import { Flame, Sparkles, Volume2, Skull, Heart, Globe, Cpu } from "lucide-react";
 import confetti from "canvas-confetti";
 import { playCalaveritaBell } from "@/lib/audio/retroSynth";
 
@@ -14,6 +14,9 @@ interface OfrendaAltarProps {
     spanish: string;
   };
   epitaph?: string;
+  loreSummary?: string;
+  loreSource?: string;
+  modelUsed?: string;
 }
 
 export function OfrendaAltar({
@@ -22,6 +25,9 @@ export function OfrendaAltar({
   author,
   calaverita,
   epitaph,
+  loreSummary,
+  loreSource,
+  modelUsed,
 }: OfrendaAltarProps) {
   const triggerMarigoldPetals = () => {
     playCalaveritaBell();
@@ -94,6 +100,19 @@ export function OfrendaAltar({
             &ldquo;{epitaph}&rdquo;
           </p>
         )}
+
+        {/* Historical Context from SerpAPI / Web Search */}
+        {loreSummary && (
+          <div className="mt-3 rounded-lg bg-black/50 p-2.5 border border-amber-950/70 text-[11px] text-slate-300">
+            <div className="flex items-center justify-between text-[10px] text-amber-400/80 mb-1 font-mono">
+              <span className="flex items-center gap-1">
+                <Globe className="h-3 w-3 text-cyan-400" /> Historical Origin
+              </span>
+              <span>{loreSource || "SerpAPI Research"}</span>
+            </div>
+            <p className="line-clamp-3 leading-relaxed text-slate-300">{loreSummary}</p>
+          </div>
+        )}
       </div>
 
       {/* Calaverita Literaria (Bilingual Rhyming Tribute) */}
@@ -128,6 +147,16 @@ export function OfrendaAltar({
           </pre>
         </div>
       </div>
+
+      {/* Model & Orchestration Badge */}
+      {modelUsed && (
+        <div className="mt-3 flex items-center justify-between rounded-lg bg-black/40 px-3 py-1.5 text-[10px] font-mono border border-amber-900/40 text-slate-400">
+          <span className="flex items-center gap-1 text-amber-300">
+            <Cpu className="h-3 w-3 text-amber-400" /> {modelUsed}
+          </span>
+          <span className="text-emerald-400">Zero-Crash Active</span>
+        </div>
+      )}
 
       {/* Ofrenda Offering Button */}
       <div className="mt-4">

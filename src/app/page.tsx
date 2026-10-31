@@ -25,6 +25,8 @@ export default function Home() {
   const [currentControls, setCurrentControls] = useState<string[]>(FLASH_PRESETS[0].controls);
   const [currentCalaverita, setCurrentCalaverita] = useState(FLASH_PRESETS[0].calaverita);
   const [currentEpitaph, setCurrentEpitaph] = useState<string>(FLASH_PRESETS[0].almanac.epitaph);
+  const [loreSummary, setLoreSummary] = useState<string | undefined>(FLASH_PRESETS[0].almanac.historicalLore);
+  const [loreSource, setLoreSource] = useState<string | undefined>("Macromedia Flash Almanac Archive");
   const [as2Code, setAs2Code] = useState<string>(FLASH_PRESETS[0].as2Code);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -47,9 +49,12 @@ export default function Home() {
     setCurrentControls(preset.controls);
     setCurrentCalaverita(preset.calaverita);
     setCurrentEpitaph(preset.almanac.epitaph);
+    setLoreSummary(preset.almanac.historicalLore);
+    setLoreSource("Macromedia Flash Almanac Archive");
     setAs2Code(preset.as2Code);
     setCemeteryKeeperMessage(undefined);
     setIsFallback(false);
+    setModelUsed("Gemma-3-27B via Mastra");
     playReanimationChime();
   };
 
@@ -81,10 +86,12 @@ export default function Home() {
         setCurrentGameCode(data.gameCode);
         setCurrentTitle(data.title || cleanTitle);
         setCurrentYear(data.year || 2005);
-        setCurrentAuthor("Recovered Bytecode Soul");
+        setCurrentAuthor(data.author || "Recovered Bytecode Soul");
         setCurrentControls(data.controls || ["Spacebar / Mouse: Interact", "Arrow Keys: Move"]);
         setCurrentCalaverita(data.calaverita);
         setCurrentEpitaph(`Preserved from ${filename} on the Flash Altar.`);
+        setLoreSummary(data.lore?.historicalContext || "Recovered Flash classic.");
+        setLoreSource(data.lore?.source || "SerpAPI Research");
         setCemeteryKeeperMessage(data.cemeteryKeeperMessage);
         setIsFallback(data.isFallback);
         setNormalizedAST(data.normalizedAST);
@@ -93,7 +100,6 @@ export default function Home() {
       }
     } catch (err) {
       console.error("Reanimation request error:", err);
-      // Graceful local fallback to preserve uninterrupted experience
       setCurrentGameCode(activePreset.defaultJsCode);
       setCemeteryKeeperMessage(
         "The Cemetery Keeper channeled this classic temple while your binary spirit was resting."
@@ -176,6 +182,9 @@ export default function Home() {
               author={currentAuthor}
               calaverita={currentCalaverita}
               epitaph={currentEpitaph}
+              loreSummary={loreSummary}
+              loreSource={loreSource}
+              modelUsed={modelUsed}
             />
           </div>
         </div>

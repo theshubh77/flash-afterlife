@@ -88,3 +88,4 @@ export function Header({ onOpenManifesto, onOpenSeance }: HeaderProps) {
     </header>
   );
 }
+

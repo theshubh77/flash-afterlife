@@ -137,3 +137,4 @@ export function WhyOpenSourceManifesto({ isOpen, onClose }: WhyOpenSourceManifes
     </div>
   );
 }
+
